@@ -1,0 +1,27 @@
+{
+  "name": "@modelata/node-fire",
+  "version": "3.0.0-alpha1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/Moventes/modelata-node-fire.git"
+  },
+  "keywords": [
+    "modelata",
+    "firebase",
+    "firestore",
+    "admin",
+    "sdk",
+    "node"
+  ],
+  "author": "Moventes",
+  "license": "Beerware",
+  "bugs": {
+    "url": "https://github.com/Moventes/modelata-node-fire/issues"
+  },
+  "homepage": "https://github.com/Moventes/modelata-node-fire#readme"
+}
