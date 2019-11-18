@@ -31,7 +31,7 @@
     "firebase-admin": "8.7.0",
     "tslint": "5.20.1",
     "tslint-config-airbnb": "5.11.2",
-    "typescript": "3.7.2"
+    "typescript": "^3.7.2"
   },
   "peerDependencies": {
     "firebase-admin": "8.7.0"
