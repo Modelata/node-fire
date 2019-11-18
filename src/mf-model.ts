@@ -1,8 +1,8 @@
 import { IMFModel, IMFLocation } from '@modelata/types-fire/lib/node';
-import { MissingFieldNotifier } from '../helpers/missing-field-notifier';
-import { ObjectHelper } from '../helpers/object.helper';
-import { getPath } from '../helpers/model.helper';
-import { Enumerable } from '../decorators/enumerable.decorator';
+import { MissingFieldNotifier } from './helpers/missing-field-notifier';
+import { getPath } from './helpers/model.helper';
+import { Enumerable } from './decorators/enumerable.decorator';
+import { createHiddenProperty } from './helpers/object.helper';
 
 export abstract class MFModel implements IMFModel {
   @Enumerable(false)
@@ -40,9 +40,9 @@ export abstract class MFModel implements IMFModel {
       }
     }
     if (location.id) {
-      ObjectHelper.createHiddenProperty(this, 'id', location.id);
+      createHiddenProperty(this, 'id', location.id);
     } else if (data && data['_id']) {
-      ObjectHelper.createHiddenProperty(this, 'id', data['_id']);
+      createHiddenProperty(this, 'id', data['_id']);
     }
 
     if (
@@ -51,19 +51,19 @@ export abstract class MFModel implements IMFModel {
       && !(<string>data['_collectionPath']).includes('{')
       && (!mustachePath || !location || Object.keys(location).filter(key => key !== 'id').length === 0)
     ) {
-      ObjectHelper.createHiddenProperty(this, 'collectionPath', data['_collectionPath']);
+      createHiddenProperty(this, 'collectionPath', data['_collectionPath']);
     } else if (mustachePath) {
-      ObjectHelper.createHiddenProperty(this, 'collectionPath', getPath(mustachePath, location));
+      createHiddenProperty(this, 'collectionPath', getPath(mustachePath, location));
     } else if (data && data['_collectionPath']) {
-      ObjectHelper.createHiddenProperty(this, 'collectionPath', data['_collectionPath']);
+      createHiddenProperty(this, 'collectionPath', data['_collectionPath']);
     }
 
     if (data && data['updateDate'] && typeof (data['updateDate'] as any).toDate === 'function') {
-      ObjectHelper.createHiddenProperty(this, 'updateDate', (data['updateDate'] as any).toDate());
+      createHiddenProperty(this, 'updateDate', (data['updateDate'] as any).toDate());
     }
 
     if (data && data['creationDate'] && typeof (data['creationDate'] as any).toDate === 'function') {
-      ObjectHelper.createHiddenProperty(this, 'creationDate', (data['creationDate'] as any).toDate());
+      createHiddenProperty(this, 'creationDate', (data['creationDate'] as any).toDate());
     }
   }
 }
