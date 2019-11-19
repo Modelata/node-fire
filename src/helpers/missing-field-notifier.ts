@@ -4,10 +4,13 @@ export class MissingFieldNotifier {
   public static notifyMissingField(clazz: string, field: string): void {
     if (
       !MissingFieldNotifier.notifiedFields.find(
-        notifiedField => notifiedField.clazz === clazz && notifiedField.field === field
+        notifiedField =>
+          notifiedField.clazz === clazz && notifiedField.field === field
       )
     ) {
-      console.warn(`property ${field} does not exist in class ${clazz} => consider to add it in "models-lib"`);
+      console.warn(
+        `property ${field} does not exist in class ${clazz} => consider to add it`
+      );
       MissingFieldNotifier.notifiedFields.push({ clazz, field });
     }
   }

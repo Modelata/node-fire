@@ -6,7 +6,7 @@ import { isCompatiblePath, getPath, getLocation } from './helpers/model.helper';
 import { createHiddenProperty } from './helpers/object.helper';
 
 export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
-  mustachePath: string = Reflect.getMetadata('collectionPath', this.constructor);
+  mustachePath: string = Reflect.getMetadata('mustachePath', this.constructor);
   private db: FirebaseFirestore.Firestore;
 
   constructor(db: FirebaseFirestore.Firestore) {
@@ -25,7 +25,7 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
 
   async get(location: string | IMFLocation, options?: IMFGetOneOptions): Promise<M> {
     this.warnOnUnusedOptions('MFDao.getById')(options);
-    if (location) {
+    if (location && (typeof location === 'string' || location.id)) {
       const reference = this.getReference(location) as DocumentReference;
       if (this.isCompatible(reference)) {
         return reference.get()
@@ -33,7 +33,7 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
       }
       throw new Error('location is not compatible with this dao!');
     } else {
-      throw new Error('getById missing parameter : location');
+      throw new Error('getById missing parameter : location and/or id');
     }
   }
 
@@ -66,10 +66,10 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
   async getList(location?: Omit<IMFLocation, 'id'>, options?: IMFGetListOptions): Promise<M[]> {
     this.warnOnUnusedOptions('MFDao.getList')(options);
 
-    if (location) {
-      const reference = this.getReference(location) as CollectionReference;
-      let query: FirebaseFirestore.Query = reference;
+    const reference = this.getReference(location) as CollectionReference;
+    let query: FirebaseFirestore.Query = reference;
 
+    if (options) {
       if (options.where && options.where.length > 0) {
         options.where.forEach((where) => {
           if (where) {
@@ -100,12 +100,10 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
       if (options.limit !== null && options.limit !== undefined && options.limit > -1) {
         query = query.limit(options.limit);
       }
-
-      return query.get()
-        .then(querySnapshot => querySnapshot.docs.map(documentSnapshot => this.getModelFromSnapshot(documentSnapshot)));
     }
 
-    throw new Error('getList missing parameter : location');
+    return query.get()
+      .then(querySnapshot => querySnapshot.docs.map(documentSnapshot => this.getModelFromSnapshot(documentSnapshot)));
   }
 
   async create(data: M, location?: string | IMFLocation, options?: IMFSaveOptions): Promise<M> {
