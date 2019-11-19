@@ -18,9 +18,9 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
   getReference(location: string | Partial<IMFLocation>): DocumentReference | CollectionReference {
     const realLocation = getLocation(location);
 
-    return realLocation.id ?
-      this.db.doc(getPath(this.mustachePath, location)) :
-      this.db.collection(getPath(this.mustachePath, location));
+    return realLocation.id
+      ? this.db.doc(getPath(this.mustachePath, location))
+      : this.db.collection(getPath(this.mustachePath, location));
   }
 
   async get(location: string | IMFLocation, options?: IMFGetOneOptions): Promise<M> {
