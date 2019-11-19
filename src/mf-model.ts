@@ -4,7 +4,7 @@ import { getPath } from './helpers/model.helper';
 import { Enumerable } from './decorators/enumerable.decorator';
 import { createHiddenProperty } from './helpers/object.helper';
 
-export abstract class MFModel implements IMFModel {
+export abstract class MFModel<M> implements IMFModel<M> {
   @Enumerable(false)
   _id: string;
 
@@ -23,15 +23,15 @@ export abstract class MFModel implements IMFModel {
    * @param mustachePath the mustache path of the collection
    * @param location document id and identifiers to set in mustache path
    */
-  initialize(data: Partial<this>, mustachePath?: string, location?: Partial<IMFLocation>): void {
+  initialize(data: Partial<M>, mustachePath?: string, location?: Partial<IMFLocation>): void {
     if (data) {
       for (const key in data) {
         if (!key.startsWith('_') && !key.startsWith('$') && typeof data[key] !== 'function') {
           if (this.hasOwnProperty(key)) {
             if (data[key] && typeof (data[key] as any).toDate === 'function') {
-              this[key] = (data[key] as any).toDate();
+              (this as any)[key] = (data[key] as any).toDate();
             } else {
-              this[key] = data[key];
+              (this as any)[key] = data[key];
             }
           } else {
             MissingFieldNotifier.notifyMissingField(this.constructor.name, key);
@@ -41,29 +41,29 @@ export abstract class MFModel implements IMFModel {
     }
     if (location.id) {
       createHiddenProperty(this, 'id', location.id);
-    } else if (data && data['_id']) {
-      createHiddenProperty(this, 'id', data['_id']);
+    } else if (data && (data as any)['_id']) {
+      createHiddenProperty(this, 'id', (data as any)['_id']);
     }
 
     if (
       data
-      && data['_collectionPath']
-      && !(<string>data['_collectionPath']).includes('{')
+      && (data as any)['_collectionPath']
+      && !(<string>(data as any)['_collectionPath']).includes('{')
       && (!mustachePath || !location || Object.keys(location).filter(key => key !== 'id').length === 0)
     ) {
-      createHiddenProperty(this, 'collectionPath', data['_collectionPath']);
+      createHiddenProperty(this, 'collectionPath', (data as any)['_collectionPath']);
     } else if (mustachePath) {
       createHiddenProperty(this, 'collectionPath', getPath(mustachePath, location));
-    } else if (data && data['_collectionPath']) {
-      createHiddenProperty(this, 'collectionPath', data['_collectionPath']);
+    } else if (data && (data as any)['_collectionPath']) {
+      createHiddenProperty(this, 'collectionPath', (data as any)['_collectionPath']);
     }
 
-    if (data && data['updateDate'] && typeof (data['updateDate'] as any).toDate === 'function') {
-      createHiddenProperty(this, 'updateDate', (data['updateDate'] as any).toDate());
+    if (data && (data as any)['updateDate'] && typeof ((data as any)['updateDate'] as any).toDate === 'function') {
+      createHiddenProperty(this, 'updateDate', ((data as any)['updateDate'] as any).toDate());
     }
 
-    if (data && data['creationDate'] && typeof (data['creationDate'] as any).toDate === 'function') {
-      createHiddenProperty(this, 'creationDate', (data['creationDate'] as any).toDate());
+    if (data && (data as any)['creationDate'] && typeof ((data as any)['creationDate'] as any).toDate === 'function') {
+      createHiddenProperty(this, 'creationDate', ((data as any)['creationDate'] as any).toDate());
     }
   }
 }

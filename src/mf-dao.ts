@@ -5,7 +5,7 @@ import { MFModel } from './mf-model';
 import { isCompatiblePath, getPath, getLocation } from './helpers/model.helper';
 import { createHiddenProperty } from './helpers/object.helper';
 
-export abstract class MFDao<M extends MFModel> implements IMFDao<M> {
+export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
   mustachePath: string = Reflect.getMetadata('collectionPath', this.constructor);
   private db: FirebaseFirestore.Firestore;
 
