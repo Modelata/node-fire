@@ -1,4 +1,12 @@
-import { IMFDao, IMFLocation, IMFGetOneOptions, IMFGetListOptions, IMFSaveOptions, IMFFile } from '@modelata/types-fire/lib/node';
+import {
+  IMFDao,
+  IMFLocation,
+  IMFGetOneOptions,
+  IMFGetListOptions,
+  IMFSaveOptions,
+  IMFFile,
+  IMFOffset,
+} from '@modelata/types-fire/lib/node';
 import { DocumentReference, DocumentSnapshot, FieldValue, CollectionReference } from '@google-cloud/firestore';
 import 'reflect-metadata';
 import { MFModel } from './mf-model';
@@ -63,7 +71,8 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
       throw new Error('getByPath missing parameter : path');
     }
   }
-  async getList(location?: Omit<IMFLocation, 'id'>, options?: IMFGetListOptions): Promise<M[]> {
+
+  async getList(location?: Omit<IMFLocation, 'id'>, options?: IMFGetListOptions<M>): Promise<M[]> {
     this.warnOnUnusedOptions('MFDao.getList')(options);
 
     const reference = this.getReference(location) as CollectionReference;
@@ -83,9 +92,7 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
       }
 
       if (options.offset && (options.offset.endBefore || options.offset.startAfter || options.offset.endAt || options.offset.startAt)) {
-        const offsetSnapshot = await this.getSnapshot(
-          options.offset.endBefore || options.offset.startAfter || options.offset.endAt || options.offset.startAt
-        );
+        const offsetSnapshot = await this.getOffsetSnapshot(options.offset);
         if (options.offset.startAt) {
           query = query.startAt(offsetSnapshot);
         } else if (options.offset.startAfter) {
@@ -106,7 +113,7 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
       .then(querySnapshot => querySnapshot.docs.map(documentSnapshot => this.getModelFromSnapshot(documentSnapshot)));
   }
 
-  async create(data: M, location?: string | IMFLocation, options?: IMFSaveOptions): Promise<M> {
+  async create(data: M, location?: string | Partial<IMFLocation>, options?: IMFSaveOptions): Promise<M> {
     const realLocation = getLocation(location);
     const emptyModel = this.getNewModel({}, realLocation);
 
@@ -121,9 +128,10 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
 
     let setOrAddPromise: Promise<any>;
     const reference = this.getReference(realLocation);
+
     if (realLocation.id) {
       setOrAddPromise = (reference as DocumentReference)
-        .set(data, { merge: !options.overwrite })
+        .set(data, { merge: options && options.overwrite ? false : true })
         .then(() => {
           if (!data['_id']) {
             createHiddenProperty(data, 'id', realLocation.id);
@@ -223,5 +231,10 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
         });
       }
     };
+  }
+
+  private getOffsetSnapshot(offsetOption: IMFOffset<M>): Promise<DocumentSnapshot> {
+    const offset = offsetOption.endBefore || offsetOption.startAfter || offsetOption.endAt || offsetOption.startAt;
+    return typeof offset === 'string' ? this.getSnapshot(offset) : Promise.resolve(offset);
   }
 }

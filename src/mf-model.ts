@@ -6,6 +6,9 @@ import { createHiddenProperty } from './helpers/object.helper';
 
 export abstract class MFModel<M> implements IMFModel<M> {
   @Enumerable(false)
+  _snapshot: FirebaseFirestore.DocumentSnapshot;
+
+  @Enumerable(false)
   _id: string;
 
   @Enumerable(false)
