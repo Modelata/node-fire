@@ -10,7 +10,7 @@ import {
 import { DocumentReference, DocumentSnapshot, FieldValue, CollectionReference } from '@google-cloud/firestore';
 import 'reflect-metadata';
 import { MFModel } from './mf-model';
-import { isCompatiblePath, getPath, getLocation } from './helpers/model.helper';
+import { isCompatiblePath, getPath, getLocation, allDataExistInModel, getSavableData, getLocationFromPath } from './helpers/model.helper';
 import { createHiddenProperty } from './helpers/object.helper';
 
 export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
@@ -27,22 +27,17 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
     const realLocation = getLocation(location);
 
     return realLocation.id
-      ? this.db.doc(getPath(this.mustachePath, location))
-      : this.db.collection(getPath(this.mustachePath, location));
+      ? this.db.doc(getPath(this.mustachePath, realLocation))
+      : this.db.collection(getPath(this.mustachePath, realLocation));
   }
 
   async get(location: string | IMFLocation, options?: IMFGetOneOptions): Promise<M> {
     this.warnOnUnusedOptions('MFDao.getById')(options);
     if (location && (typeof location === 'string' || location.id)) {
       const reference = this.getReference(location) as DocumentReference;
-      if (this.isCompatible(reference)) {
-        return reference.get()
-          .then(snapshot => this.getModelFromSnapshot(snapshot));
-      }
-      throw new Error('location is not compatible with this dao!');
-    } else {
-      throw new Error('getById missing parameter : location and/or id');
+      return this.getByReference(reference, options);
     }
+    throw new Error('getById missing parameter : location and/or id');
   }
 
   async getByReference(reference: DocumentReference, options?: IMFGetOneOptions): Promise<M> {
@@ -61,15 +56,9 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
   async getByPath(path: string, options?: IMFGetOneOptions): Promise<M> {
     this.warnOnUnusedOptions('MFDao.getByPath')(options);
     if (path) {
-      const reference = this.db.doc(path);
-      if (this.isCompatible(reference)) {
-        return reference.get()
-          .then(snapshot => this.getModelFromSnapshot(snapshot));
-      }
-      throw new Error('path is not compatible with this dao!');
-    } else {
-      throw new Error('getByPath missing parameter : path');
+      return this.getByReference(this.db.doc(path));
     }
+    throw new Error('getByPath missing parameter : path');
   }
 
   async getList(location?: Omit<IMFLocation, 'id'>, options?: IMFGetListOptions<M>): Promise<M[]> {
@@ -91,9 +80,15 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
         query = query.orderBy(options.orderBy.field, options.orderBy.operator);
       }
 
-      if (options.offset && (options.offset.endBefore || options.offset.startAfter || options.offset.endAt || options.offset.startAt)) {
-        const offsetSnapshot = await this.getOffsetSnapshot(options.offset);
-        if (options.offset.startAt) {
+      if (options.offset && (options.offset.startAt || options.offset.startAfter || options.offset.endAt || options.offset.endBefore)) {
+        const getOneOptions: IMFGetOneOptions = {};
+        if (options.hasOwnProperty('cacheable')) { getOneOptions.cacheable = options.cacheable; }
+        if (options.hasOwnProperty('completeOnFirst')) { getOneOptions.completeOnFirst = options.completeOnFirst; }
+        if (options.hasOwnProperty('withSnapshot')) { getOneOptions.withSnapshot = options.withSnapshot; }
+        const offsetSnapshot = await this.getOffsetSnapshot(options.offset, getOneOptions);
+        if (Object.values(options.offset).filter(value => !!value).length > 1) {
+          throw new Error('Two many offset options')
+        } else if (options.offset.startAt) {
           query = query.startAt(offsetSnapshot);
         } else if (options.offset.startAfter) {
           query = query.startAfter(offsetSnapshot);
@@ -114,56 +109,47 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
   }
 
   async create(data: M, location?: string | Partial<IMFLocation>, options?: IMFSaveOptions): Promise<M> {
-    const realLocation = getLocation(location);
-    const emptyModel = this.getNewModel({}, realLocation);
-
-    for (const key in data) {
-      if (!emptyModel.hasOwnProperty(key)) {
-        return Promise.reject(`try to update/add an attribute that is not defined in the model = ${key}`);
-      }
+    if (!allDataExistInModel(data, this.getNewModel())) {
+      return Promise.reject('try to update/add an attribute that is not defined in the model');
     }
 
     (data as any)['updateDate'] = FieldValue.serverTimestamp();
     (data as any)['creationDate'] = FieldValue.serverTimestamp();
 
-    let setOrAddPromise: Promise<any>;
+    const getDataToSave = this.beforeSave(data).then(data2 => getSavableData(data2));
+    const realLocation = location ? getLocation(location) : getLocationFromPath(data._collectionPath, this.mustachePath, data._id);
     const reference = this.getReference(realLocation);
 
+    let setOrAddPromise: Promise<any>;
+
     if (realLocation.id) {
-      setOrAddPromise = (reference as DocumentReference)
-        .set(data, { merge: options && options.overwrite ? false : true })
-        .then(() => {
-          if (!data['_id']) {
-            createHiddenProperty(data, 'id', realLocation.id);
-          }
-          return data;
-        }).catch((error) => {
-          console.error(error);
-          console.log('error for ', data);
-          return Promise.reject(error);
-        });
+      setOrAddPromise = getDataToSave.then((dataToSave) => {
+        return (reference as DocumentReference)
+          .set(dataToSave, { merge: options && options.overwrite ? false : true })
+      });
     } else {
-      setOrAddPromise = (reference as CollectionReference)
-        .add(data)
-        .then((ref) => {
-          createHiddenProperty(data, 'id', ref.id);
-          return data;
-        });
+      setOrAddPromise = getDataToSave.then((dataToSave) => {
+        return (reference as CollectionReference)
+          .add(dataToSave);
+      });
     }
 
-    return setOrAddPromise.then(doc =>
-      this.getNewModel(doc, { ...realLocation, id: doc._id })
-    );
+    return setOrAddPromise
+      .then(ref =>
+        this.getNewModel(data, ref ? ({ ...realLocation, id: ref.id }) : realLocation)
+      ).catch((error) => {
+        console.error(error);
+        console.log('error for ', data);
+        return Promise.reject(error);
+      });
   }
-  async update(data: Partial<M>, location?: string | IMFLocation, options?: IMFSaveOptions): Promise<Partial<M>> {
-    const realLocation = getLocation(location);
-    const emptyModel = this.getNewModel({}, realLocation);
 
-    for (const key in data) {
-      if (!emptyModel.hasOwnProperty(key)) {
-        return Promise.reject(`try to update/add an attribute that is not defined in the model = ${key}`);
-      }
+  async update(data: Partial<M>, location?: string | IMFLocation, options?: IMFSaveOptions): Promise<Partial<M>> {
+    if (!allDataExistInModel(data, this.getNewModel())) {
+      return Promise.reject('try to update/add an attribute that is not defined in the model');
     }
+
+    const realLocation = location ? getLocation(location) : getLocationFromPath(data._collectionPath, this.mustachePath, data._id);
 
     (data as any)['updateDate'] = FieldValue.serverTimestamp();
 
@@ -177,22 +163,14 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
 
   getModelFromSnapshot(snapshot: DocumentSnapshot): M {
     if (snapshot.exists) {
-      const pathIds: Omit<IMFLocation, 'id'> = {};
-      const pathSplitted = snapshot.ref.path.split('/');
-      if (pathSplitted.length > 2) {
-        for (let i = 1; i < pathSplitted.length; i += 2) {
-          // take every second element
-          pathIds[pathSplitted[i - 1]] = pathSplitted[i];
-        }
-      }
-      const model = this.getNewModel(
-        snapshot.data() as Partial<M>,
+      return this.getNewModel(
         {
-          id: snapshot.id,
-          ...pathIds
+          ...snapshot.data() as Partial<M>,
+          _id: snapshot.id,
+          _collectionPath: snapshot.ref.path,
+          _snapshot: snapshot,
         }
       );
-      return model;
     }
     console.error(
       '[firestoreDao] - getNewModelFromDb return null because dbObj.exists is null or false. dbObj :',
@@ -201,20 +179,26 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
     return null;
   }
 
-  async getSnapshot(location: string | IMFLocation): Promise<DocumentSnapshot> {
+  async getSnapshot(location: string | IMFLocation, options?: IMFGetOneOptions): Promise<DocumentSnapshot> {
+    this.warnOnUnusedOptions('MFDao.getSnapshot')(options);
     return (this.getReference(location) as DocumentReference).get();
   }
 
-  async beforeSave(model: any): Promise<any> {
+  async beforeSave(model: Partial<M>): Promise<Partial<M>> {
     return Promise.resolve(model);
   }
 
   saveFile(fileObject: IMFFile, location: string | IMFLocation): IMFFile {
-    throw new Error('Method not implemented.');
+    throw new Error('Method saveFile not yet implemented in @modelata/node-fire.');
   }
 
-  private isCompatible(doc: M | DocumentReference): boolean {
-    return isCompatiblePath(this.mustachePath, doc instanceof DocumentReference ? doc.path : doc._collectionPath);
+  public isCompatible(doc: M | DocumentReference | CollectionReference): boolean {
+    return isCompatiblePath(
+      this.mustachePath,
+      (doc as M)._collectionPath ||
+      (doc as DocumentReference).path ||
+      (doc as CollectionReference).path
+    );
   }
 
   private warnOnUnusedOptions(methodName: string) {
@@ -233,8 +217,8 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
     };
   }
 
-  private getOffsetSnapshot(offsetOption: IMFOffset<M>): Promise<DocumentSnapshot> {
-    const offset = offsetOption.endBefore || offsetOption.startAfter || offsetOption.endAt || offsetOption.startAt;
-    return typeof offset === 'string' ? this.getSnapshot(offset) : Promise.resolve(offset);
+  private getOffsetSnapshot(offsetOption: IMFOffset<M>, options?: IMFGetOneOptions): Promise<DocumentSnapshot> {
+    const offset = offsetOption.startAt || offsetOption.startAfter || offsetOption.endAt || offsetOption.endBefore;
+    return typeof offset === 'string' ? this.getSnapshot(offset, options) : Promise.resolve(offset);
   }
 }
