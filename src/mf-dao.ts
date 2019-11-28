@@ -10,7 +10,7 @@ import {
 import { DocumentReference, DocumentSnapshot, FieldValue, CollectionReference } from '@google-cloud/firestore';
 import 'reflect-metadata';
 import { MFModel } from './mf-model';
-import { isCompatiblePath, getPath, getLocation, allDataExistInModel, getSavableData, getLocationFromPath } from './helpers/model.helper';
+import { isCompatiblePath, getPath, getLocation, allDataExistInModel, getSavableData, getLocationFromPath, getSplittedPath } from './helpers/model.helper';
 import { createHiddenProperty } from './helpers/object.helper';
 
 export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
@@ -87,7 +87,7 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
         if (options.hasOwnProperty('withSnapshot')) { getOneOptions.withSnapshot = options.withSnapshot; }
         const offsetSnapshot = await this.getOffsetSnapshot(options.offset, getOneOptions);
         if (Object.values(options.offset).filter(value => !!value).length > 1) {
-          throw new Error('Two many offset options')
+          throw new Error('Two many offset options');
         } else if (options.offset.startAt) {
           query = query.startAt(offsetSnapshot);
         } else if (options.offset.startAfter) {
@@ -122,10 +122,10 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
 
     let setOrAddPromise: Promise<any>;
 
-    if (realLocation.id) {
+    if (realLocation && realLocation.id) {
       setOrAddPromise = getDataToSave.then((dataToSave) => {
         return (reference as DocumentReference)
-          .set(dataToSave, { merge: options && options.overwrite ? false : true })
+          .set(dataToSave, { merge: options && options.overwrite ? false : true });
       });
     } else {
       setOrAddPromise = getDataToSave.then((dataToSave) => {
@@ -220,5 +220,19 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
   private getOffsetSnapshot(offsetOption: IMFOffset<M>, options?: IMFGetOneOptions): Promise<DocumentSnapshot> {
     const offset = offsetOption.startAt || offsetOption.startAfter || offsetOption.endAt || offsetOption.endBefore;
     return typeof offset === 'string' ? this.getSnapshot(offset, options) : Promise.resolve(offset);
+  }
+
+  getReferenceFromPath(path: string): DocumentReference | CollectionReference {
+    if (isCompatiblePath(this.mustachePath, path)) {
+      const { pathSplitted, mustachePathSplitted } = getSplittedPath(path, this.mustachePath);
+      if (pathSplitted.length === mustachePathSplitted.length + 1) {
+        return this.db.doc(path);
+      }
+      if (pathSplitted.length === mustachePathSplitted.length) {
+        return this.db.collection(path);
+      }
+      throw new Error('Unable to establish if path is for doc or collection');
+    }
+    throw new Error('This path is not compatible with this DAO');
   }
 }

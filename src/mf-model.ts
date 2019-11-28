@@ -6,19 +6,19 @@ import { createHiddenProperty } from './helpers/object.helper';
 
 export abstract class MFModel<M> implements IMFModel<M> {
   @Enumerable(false)
-  _snapshot: FirebaseFirestore.DocumentSnapshot;
+  _snapshot: FirebaseFirestore.DocumentSnapshot = null;
 
   @Enumerable(false)
-  _id: string;
+  _id: string = null;
 
   @Enumerable(false)
-  _collectionPath: string;
+  _collectionPath: string = null;
 
   @Enumerable(false)
-  creationDate: Date;
+  creationDate: Date = null;
 
   @Enumerable(false)
-  updateDate: Date;
+  updateDate: Date = null;
 
   /**
    * initializes the instance of the model with the given data and location
@@ -51,61 +51,16 @@ export abstract class MFModel<M> implements IMFModel<M> {
         }
       }
     }
-    if (location.id) {
+    if (location && location.id) {
       createHiddenProperty(this, 'id', location.id);
     } else if (data && (data as any)['_id']) {
       createHiddenProperty(this, 'id', (data as any)['_id']);
     }
 
-    if (
-      data &&
-      (data as any)['_collectionPath'] &&
-      !(<string>(data as any)['_collectionPath']).includes('{') &&
-      (!mustachePath ||
-        !location ||
-        Object.keys(location).filter(key => key !== 'id').length === 0)
-    ) {
-      createHiddenProperty(
-        this,
-        'collectionPath',
-        (data as any)['_collectionPath']
-      );
-    } else if (mustachePath) {
-      createHiddenProperty(
-        this,
-        'collectionPath',
-        getPath(mustachePath, location)
-      );
-    } else if (data && (data as any)['_collectionPath']) {
-      createHiddenProperty(
-        this,
-        'collectionPath',
-        (data as any)['_collectionPath']
-      );
-    }
-
-    if (
-      data &&
-      (data as any)['updateDate'] &&
-      typeof ((data as any)['updateDate'] as any).toDate === 'function'
-    ) {
-      createHiddenProperty(
-        this,
-        'updateDate',
-        ((data as any)['updateDate'] as any).toDate()
-      );
-    }
-
-    if (
-      data &&
-      (data as any)['creationDate'] &&
-      typeof ((data as any)['creationDate'] as any).toDate === 'function'
-    ) {
-      createHiddenProperty(
-        this,
-        'creationDate',
-        ((data as any)['creationDate'] as any).toDate()
-      );
+    if (mustachePath && location) {
+      createHiddenProperty(this, 'collectionPath', getPath(mustachePath, location));
+    } else if (data && (data as any)._collectionPath) {
+      createHiddenProperty(this, 'collectionPath', (data as any)._collectionPath);
     }
   }
 }

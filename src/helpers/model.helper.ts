@@ -68,18 +68,21 @@ export function getLocation(location?: string | Partial<IMFLocation>): Partial<I
  * @param location string id or location object
  */
 export function getLocationFromPath(path: string, mustachePath: string, id?: string): Partial<IMFLocation> {
-  const { pathSplitted, mustachePathSplitted } = getSplittedPath(path, mustachePath);
+  if (path && mustachePath) {
+    const { pathSplitted, mustachePathSplitted } = getSplittedPath(path, mustachePath);
 
-  return mustachePathSplitted.reduce(
-    (location: Partial<IMFLocation>, partOfMustachePath: string, index: number) => {
-      if (partOfMustachePath.startsWith('{')) {
-        location[partOfMustachePath.slice(1, -1)] = pathSplitted[index];
-      }
-      return location;
-    },
-    {
-      id
-    });
+    return mustachePathSplitted.reduce(
+      (location: Partial<IMFLocation>, partOfMustachePath: string, index: number) => {
+        if (partOfMustachePath.startsWith('{')) {
+          location[partOfMustachePath.slice(1, -1)] = pathSplitted[index];
+        }
+        return location;
+      },
+      {
+        id
+      });
+  }
+  return null;
 }
 
 export function getSplittedPath(path: String, mustachePath: string): {
@@ -124,7 +127,6 @@ export function allDataExistInModel<M>(data: Partial<M>, model: M, logInexisting
 * @param modelObj the data to save
 */
 export function getSavableData<M>(modelObj: M): Partial<M> {
-
   return Object.keys(modelObj)
     .filter(key =>
       !(key as string).startsWith('_') &&
@@ -143,5 +145,4 @@ export function getSavableData<M>(modelObj: M): Partial<M> {
       },
       {}
     );
-
 }
