@@ -22,6 +22,7 @@ export abstract class MFModel<M> implements IMFModel<M> {
 
   /**
    * initializes the instance of the model with the given data and location
+   * 
    * @param data the data to inject in the instance
    * @param mustachePath the mustache path of the collection
    * @param location document id and identifiers to set in mustache path
@@ -31,6 +32,17 @@ export abstract class MFModel<M> implements IMFModel<M> {
     mustachePath?: string,
     location?: Partial<IMFLocation>
   ): void {
+    if (location && location.id) {
+      createHiddenProperty(this, 'id', location.id);
+    } else if (data && (data as any)['_id']) {
+      createHiddenProperty(this, 'id', (data as any)._id);
+    }
+
+    if (mustachePath && location) {
+      createHiddenProperty(this, 'collectionPath', getPath(mustachePath, { ...location, id: null }));
+    } else if (data && (data as any)._collectionPath) {
+      createHiddenProperty(this, 'collectionPath', (data as any)._collectionPath);
+    }
     if (data) {
       for (const key in data) {
         if (
@@ -50,17 +62,6 @@ export abstract class MFModel<M> implements IMFModel<M> {
           }
         }
       }
-    }
-    if (location && location.id) {
-      createHiddenProperty(this, 'id', location.id);
-    } else if (data && (data as any)['_id']) {
-      createHiddenProperty(this, 'id', (data as any)['_id']);
-    }
-
-    if (mustachePath && location) {
-      createHiddenProperty(this, 'collectionPath', getPath(mustachePath, location));
-    } else if (data && (data as any)._collectionPath) {
-      createHiddenProperty(this, 'collectionPath', (data as any)._collectionPath);
     }
   }
 }

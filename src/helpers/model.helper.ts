@@ -1,18 +1,20 @@
 import { IMFLocation } from '@modelata/types-fire/lib/node';
 import { mustache } from './string.helper';
+import { MFModel } from '../mf-model';
 
 /**
  * Returns the path from a collection mustache path ad a location object.
- * @param collectionPath Collection mustache path
+ * 
+ * @param mustachePath Collection mustache path
  * @param location Location object containin path ids and document id or not.
  */
-export function getPath(collectionPath: string, location?: string | Partial<IMFLocation>): string {
-  const realLocation = getLocation(location);
+export function getPath(mustachePath: string, location?: string | Partial<IMFLocation>): string {
+  const realLocation = getLocation(location, mustachePath);
 
-  if (!(collectionPath && collectionPath.length)) {
-    throw new Error('collectionPath must be defined');
+  if (!(mustachePath && mustachePath.length)) {
+    throw new Error('mustachePath must be defined');
   }
-  let path = mustache(collectionPath, realLocation);
+  let path = mustache(mustachePath, realLocation);
   if (path.includes('{')) {
     const missingIdRegex = /{(.*?)}/g;
     const missingIds: string[] = [];
@@ -31,6 +33,7 @@ export function getPath(collectionPath: string, location?: string | Partial<IMFL
 /**
  * Returns true if the document path is in the same format as the collection path (meaning the document is from this kind of collection)
  * or false if it doesn't
+ * 
  * @param mustachePath Collection path
  * @param refPath Document path
  */
@@ -52,19 +55,26 @@ export function isCompatiblePath(mustachePath: string, refPath: string): boolean
 
 /**
  * Return a location object from either unvalued, string id or location object
- * @param location string id or location object
+ * 
+ * @param idOrLocationOrModel string id or location object
  */
-export function getLocation(location?: string | Partial<IMFLocation>): Partial<IMFLocation> {
-  if (location) {
-    return typeof location === 'string' ?
-      { id: location } :
-      location;
+export function getLocation(idOrLocationOrModel: string | Partial<IMFLocation> | MFModel<any>, mustachePath: string): Partial<IMFLocation> {
+  if (idOrLocationOrModel) {
+    if (typeof idOrLocationOrModel === 'string') {
+      return { id: idOrLocationOrModel };
+    }
+    if (idOrLocationOrModel.hasOwnProperty('_collectionPath')) {
+      return getLocationFromPath(idOrLocationOrModel._collectionPath, mustachePath, idOrLocationOrModel._id) as IMFLocation;
+    }
+
+    return idOrLocationOrModel as Partial<IMFLocation>;
   }
   return {};
 }
 
 /**
  * Return a location object from either unvalued, string id or location object
+ * 
  * @param location string id or location object
  */
 export function getLocationFromPath(path: string, mustachePath: string, id?: string): Partial<IMFLocation> {
@@ -82,9 +92,15 @@ export function getLocationFromPath(path: string, mustachePath: string, id?: str
         id
       });
   }
-  return null;
+  return {};
 }
 
+/**
+ * Returns arrays of elements constituting model path and mustache path
+ * 
+ * @param path Model path
+ * @param mustachePath Dao mustache path
+ */
 export function getSplittedPath(path: String, mustachePath: string): {
   pathSplitted: string[],
   mustachePathSplitted: string[],
@@ -110,6 +126,13 @@ export function getSplittedPath(path: String, mustachePath: string): {
   };
 }
 
+/**
+ * Returns true if every property of data exists in model. Else, returns false
+ * 
+ * @param data Data that will be checked
+ * @param model Model in wich data must fit
+ * @param logInexistingData Optional: display log for property missing in model (default is true)
+ */
 export function allDataExistInModel<M>(data: Partial<M>, model: M, logInexistingData: boolean = true): boolean {
   for (const key in data) {
     if (!model.hasOwnProperty(key)) {
@@ -123,9 +146,10 @@ export function allDataExistInModel<M>(data: Partial<M>, model: M, logInexisting
 }
 
 /**
-* method used to prepare the data for save
-* @param modelObj the data to save
-*/
+ * method used to prepare the data for save
+ * 
+ * @param modelObj the data to save
+ */
 export function getSavableData<M>(modelObj: M): Partial<M> {
   return Object.keys(modelObj)
     .filter(key =>
@@ -145,4 +169,14 @@ export function getSavableData<M>(modelObj: M): Partial<M> {
       },
       {}
     );
+}
+
+/**
+ * returns list of file(s) properties
+ * @param model The model object
+ */
+export function getFileProperties(model: Object): string[] {
+  return Object.keys(model).filter((key) => {
+    return Reflect.hasMetadata('storageProperty', model as Object, key);
+  });
 }

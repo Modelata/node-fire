@@ -28,7 +28,7 @@
   },
   "homepage": "https://github.com/Moventes/modelata-node-fire#readme",
   "dependencies": {
-    "@modelata/types-fire": "^3.0.0-alpha18"
+    "@modelata/types-fire": "^3.0.1-dev2"
   },
   "devDependencies": {
     "firebase-admin": "8.7.0",

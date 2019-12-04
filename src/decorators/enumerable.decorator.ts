@@ -1,5 +1,6 @@
 /**
  * Defines the decorated property as enumarable or not depending on value parameter.
+ * 
  * @param value value of enumerable descriptor of property.
  */
 export function Enumerable(value: boolean) {
