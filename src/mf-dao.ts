@@ -263,7 +263,7 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
         if (
           property
           && (
-            typeof (options as any)[key] === 'boolean' ?
+            (options && typeof (options as any)[key] === 'boolean') ?
               (options as any)[key] :
               property.storagePath && (Reflect.getMetadata('storageProperty', model, key) as IMFStorageOptions).deleteOnDelete
           )
