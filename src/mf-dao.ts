@@ -28,7 +28,7 @@ import {
 export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
   public readonly mustachePath: string = Reflect.getMetadata('mustachePath', this.constructor);
 
-  constructor(private db: FirebaseFirestore.Firestore, private storage: Bucket) { }
+  constructor(private db: FirebaseFirestore.Firestore, private storage?: Bucket) { }
 
   /////////////////////////////////////
   /////////////////////////////////////
