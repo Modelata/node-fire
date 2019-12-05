@@ -1,6 +1,6 @@
 /**
  * Adds an hidden property to object. Hidden property name will start with an underscore.
- * 
+ *
  * @param obj Object to which add an hidden property
  * @param propName Name of the property (without underscore)
  * @param propVal Value of the hidden property

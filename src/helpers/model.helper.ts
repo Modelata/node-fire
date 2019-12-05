@@ -4,7 +4,7 @@ import { MFModel } from '../mf-model';
 
 /**
  * Returns the path from a collection mustache path ad a location object.
- * 
+ *
  * @param mustachePath Collection mustache path
  * @param location Location object containin path ids and document id or not.
  */
@@ -33,7 +33,7 @@ export function getPath(mustachePath: string, location?: string | Partial<IMFLoc
 /**
  * Returns true if the document path is in the same format as the collection path (meaning the document is from this kind of collection)
  * or false if it doesn't
- * 
+ *
  * @param mustachePath Collection path
  * @param refPath Document path
  */
@@ -55,7 +55,7 @@ export function isCompatiblePath(mustachePath: string, refPath: string): boolean
 
 /**
  * Return a location object from either unvalued, string id or location object
- * 
+ *
  * @param idOrLocationOrModel string id or location object
  */
 export function getLocation(idOrLocationOrModel: string | Partial<IMFLocation> | MFModel<any>, mustachePath: string): Partial<IMFLocation> {
@@ -74,7 +74,7 @@ export function getLocation(idOrLocationOrModel: string | Partial<IMFLocation> |
 
 /**
  * Return a location object from either unvalued, string id or location object
- * 
+ *
  * @param location string id or location object
  */
 export function getLocationFromPath(path: string, mustachePath: string, id?: string): Partial<IMFLocation> {
@@ -97,7 +97,7 @@ export function getLocationFromPath(path: string, mustachePath: string, id?: str
 
 /**
  * Returns arrays of elements constituting model path and mustache path
- * 
+ *
  * @param path Model path
  * @param mustachePath Dao mustache path
  */
@@ -128,7 +128,7 @@ export function getSplittedPath(path: String, mustachePath: string): {
 
 /**
  * Returns true if every property of data exists in model. Else, returns false
- * 
+ *
  * @param data Data that will be checked
  * @param model Model in wich data must fit
  * @param logInexistingData Optional: display log for property missing in model (default is true)
@@ -147,7 +147,7 @@ export function allDataExistInModel<M>(data: Partial<M>, model: M, logInexisting
 
 /**
  * method used to prepare the data for save
- * 
+ *
  * @param modelObj the data to save
  */
 export function getSavableData<M>(modelObj: M): Partial<M> {
@@ -173,6 +173,7 @@ export function getSavableData<M>(modelObj: M): Partial<M> {
 
 /**
  * returns list of file(s) properties
+ *
  * @param model The model object
  */
 export function getFileProperties(model: Object): string[] {

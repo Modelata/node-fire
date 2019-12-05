@@ -22,7 +22,7 @@ export abstract class MFModel<M> implements IMFModel<M> {
 
   /**
    * initializes the instance of the model with the given data and location
-   * 
+   *
    * @param data the data to inject in the instance
    * @param mustachePath the mustache path of the collection
    * @param location document id and identifiers to set in mustache path

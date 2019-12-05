@@ -22,15 +22,13 @@ import {
   getFileProperties
 } from './helpers/model.helper';
 
+/**
+ * Abstract DAO class
+ */
 export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
-  mustachePath: string = Reflect.getMetadata('mustachePath', this.constructor);
-  private db: FirebaseFirestore.Firestore;
-  private storage: Bucket;
+  public readonly mustachePath: string = Reflect.getMetadata('mustachePath', this.constructor);
 
-  constructor(db: FirebaseFirestore.Firestore, storage: Bucket) {
-    this.db = db;
-    this.storage = storage;
-  }
+  constructor(private db: FirebaseFirestore.Firestore, private storage: Bucket) { }
 
   /////////////////////////////////////
   /////////////////////////////////////
@@ -268,7 +266,12 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
 
   public deleteFile(fileObject: IMFFile): Promise<void> {
     if (this.storage) {
-      return this.storage.file(fileObject.storagePath).delete().then();
+      return this.storage.file(fileObject.storagePath).delete().then(() => Promise.resolve()).catch((err) => {
+        if (err.code === 'storage/object-not-found') {
+          return Promise.resolve();
+        }
+        return Promise.reject(err);
+      });
     }
     return Promise.reject(new Error('AngularFireStorage was not injected'));
   }

@@ -9,7 +9,7 @@ export class MissingFieldNotifier {
 
   /**
    * Display a warning in console about missing fields in model. Each field is notified only once.
-   * 
+   *
    * @param clazz name of the targeted model
    * @param field name of the missing property
    */
