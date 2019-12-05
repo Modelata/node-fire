@@ -7,6 +7,9 @@ import {
   IMFFile,
   IMFOffset,
   IMFStorageOptions,
+  IMFUpdateOptions,
+  IMFDeleteOptions,
+  IMFDeleteOnDeleteFilesOptions
 } from '@modelata/types-fire/lib/node';
 import { DocumentReference, DocumentSnapshot, FieldValue, CollectionReference } from '@google-cloud/firestore';
 import { Bucket } from '@google-cloud/storage';
@@ -173,7 +176,8 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
       });
   }
 
-  async update(data: Partial<M>, idOrLocationOrModel?: string | IMFLocation | M): Promise<Partial<M>> {
+  async update(data: Partial<M>, idOrLocationOrModel?: string | IMFLocation | M, options?: IMFUpdateOptions<M>): Promise<Partial<M>> {
+    this.warnOnUnusedOptions('MFDao.update')(options);
     if (!allDataExistInModel(data, this.getNewModel())) {
       return Promise.reject('try to update/add an attribute that is not defined in the model');
     }
@@ -187,8 +191,8 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
       .then(() => data);
   }
 
-  async delete(idLocationOrModel: string | IMFLocation | M): Promise<void> {
-
+  async delete(idLocationOrModel: string | IMFLocation | M, options?: IMFDeleteOptions<M>): Promise<void> {
+    this.warnOnUnusedOptions('MFDao.delete')(options);
     const realLocation = getLocation(idLocationOrModel, this.mustachePath);
     let deleteFilesPromise: Promise<M>;
 
@@ -196,7 +200,7 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
       deleteFilesPromise = (idLocationOrModel.hasOwnProperty('_collectionPath') ? // is model ? ok : get model
         Promise.resolve(idLocationOrModel as M) :
         this.get(realLocation as IMFLocation)
-      ).then(model => this.deleteFiles(model));
+      ).then(model => this.deleteFiles(model, options ? options.deleteOnDeleteFiles : undefined));
     } else {
       deleteFilesPromise = Promise.resolve(null);
     }
@@ -250,13 +254,20 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
     throw new Error('Method saveFile not yet implemented in @modelata/node-fire.');
   }
 
-  private async deleteFiles(model: M): Promise<M> {
+  private async deleteFiles(model: M, options?: IMFDeleteOnDeleteFilesOptions<M>): Promise<M> {
     const fileProperties = getFileProperties(model);
 
     return fileProperties.length ?
       Promise.all(fileProperties.filter(key => (model as any)[key]).map((key) => {
         const property = (model as any)[key] as IMFFile;
-        if (property && property.storagePath && (Reflect.getMetadata('storageProperty', model, key) as IMFStorageOptions).deleteOnDelete) {
+        if (
+          property
+          && (
+            typeof (options as any)[key] === 'boolean' ?
+              (options as any)[key] :
+              property.storagePath && (Reflect.getMetadata('storageProperty', model, key) as IMFStorageOptions).deleteOnDelete
+          )
+        ) {
           return this.deleteFile(property);
         }
         return Promise.resolve();
@@ -264,10 +275,10 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
       Promise.resolve(model);
   }
 
-  public deleteFile(fileObject: IMFFile): Promise<void> {
+  public async deleteFile(fileObject: IMFFile): Promise<void> {
     if (this.storage) {
       return this.storage.file(fileObject.storagePath).delete().then(() => Promise.resolve()).catch((err) => {
-        if (err.code === 'storage/object-not-found') {
+        if (err.code === 404) {
           return Promise.resolve();
         }
         return Promise.reject(err);
@@ -296,6 +307,7 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
       const unusedOptions = [
         'cacheable',
         'completeOnFirst',
+        'deletePreviousOnUpdateFiles',
       ];
       if (options) {
         unusedOptions.map((key) => {

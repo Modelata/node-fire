@@ -1,13 +1,14 @@
 {
   "name": "@modelata/node-fire",
-  "version": "3.0.0-dev3",
+  "version": "3.0.0-dev5",
   "description": "Modelata abstract layer for firebase-admin sdk in node.js",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
     "build": "tsc",
     "lint": "tslint -p tsconfig.json -c tslint.json 'src/**/*.ts'",
-    "prepublish": "npm run build"
+    "prepublishOnly": "npm run build",
+    "doc": "typedoc --out docs src && touch docs/.nojekyll"
   },
   "repository": {
     "type": "git",
@@ -28,12 +29,13 @@
   },
   "homepage": "https://github.com/Moventes/modelata-node-fire#readme",
   "dependencies": {
-    "@modelata/types-fire": "^3.0.1-dev2"
+    "@modelata/types-fire": "^3.0.1-dev7"
   },
   "devDependencies": {
     "firebase-admin": "8.7.0",
     "tslint": "5.20.1",
     "tslint-config-airbnb": "5.11.2",
+    "typedoc": "^0.15.3",
     "typescript": "^3.7.2"
   },
   "peerDependencies": {
