@@ -6,10 +6,11 @@ import { MFModel } from '../mf-model';
  * Returns the path from a collection mustache path ad a location object.
  *
  * @param mustachePath Collection mustache path
- * @param location Location object containin path ids and document id or not.
+ * @param idOrLocation id or Location object containin path ids and document id or not.
+ * @returns The path filled with ids
  */
-export function getPath(mustachePath: string, location?: string | Partial<IMFLocation>): string {
-  const realLocation = getLocation(location, mustachePath);
+export function getPath(mustachePath: string, idOrLocation?: string | Partial<IMFLocation>): string {
+  const realLocation = getLocation(idOrLocation, mustachePath);
 
   if (!(mustachePath && mustachePath.length)) {
     throw new Error('mustachePath must be defined');
@@ -54,9 +55,10 @@ export function isCompatiblePath(mustachePath: string, refPath: string): boolean
 }
 
 /**
- * Return a location object from either unvalued, string id or location object
+ * Return a location object from either unvalued, string id, location object or model
  *
  * @param idOrLocationOrModel string id or location object
+ * @returns The location built from params
  */
 export function getLocation(idOrLocationOrModel: string | Partial<IMFLocation> | MFModel<any>, mustachePath: string): Partial<IMFLocation> {
   if (idOrLocationOrModel) {
@@ -73,9 +75,11 @@ export function getLocation(idOrLocationOrModel: string | Partial<IMFLocation> |
 }
 
 /**
- * Return a location object from either unvalued, string id or location object
- *
- * @param location string id or location object
+ * Returns a location object from path and mustache path
+ * @param path the path to convert to a location
+ * @param mustachePath the collectionPath with mustache ids
+ * @param id document id
+ * @returns The location object built from params
  */
 export function getLocationFromPath(path: string, mustachePath: string, id?: string): Partial<IMFLocation> {
   if (path && mustachePath) {
@@ -100,6 +104,7 @@ export function getLocationFromPath(path: string, mustachePath: string, id?: str
  *
  * @param path Model path
  * @param mustachePath Dao mustache path
+ * @returns an object containing the path splitted and the mustache path splitted too
  */
 export function getSplittedPath(path: String, mustachePath: string): {
   pathSplitted: string[],
@@ -149,6 +154,7 @@ export function allDataExistInModel<M>(data: Partial<M>, model: M, logInexisting
  * method used to prepare the data for save
  *
  * @param modelObj the data to save
+ * @returns the object cleaned from properties and methods that will not be saved in database
  */
 export function getSavableData<M>(modelObj: M): Partial<M> {
   return Object.keys(modelObj)
@@ -175,6 +181,7 @@ export function getSavableData<M>(modelObj: M): Partial<M> {
  * returns list of file(s) properties
  *
  * @param model The model object
+ * @return array of file properties names
  */
 export function getFileProperties(model: Object): string[] {
   return Object.keys(model).filter((key) => {

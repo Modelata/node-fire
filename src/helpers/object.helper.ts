@@ -5,7 +5,7 @@
  * @param propName Name of the property (without underscore)
  * @param propVal Value of the hidden property
  */
-export function createHiddenProperty(obj: Object, propName: string, propVal: any) {
+export function createHiddenProperty(obj: Object, propName: string, propVal: any): void {
   if (obj) {
     const hiddenPropName = `_${propName}`;
     if (obj.hasOwnProperty(hiddenPropName)) {

@@ -5,27 +5,42 @@ import { Enumerable } from './decorators/enumerable.decorator';
 import { createHiddenProperty } from './helpers/object.helper';
 
 export abstract class MFModel<M> implements IMFModel<M> {
+  /**
+   * @inheritdoc
+   */
   @Enumerable(false)
   _snapshot: FirebaseFirestore.DocumentSnapshot = null;
 
+  /**
+   * @inheritdoc
+   */
   @Enumerable(false)
   _id: string = null;
 
+  /**
+   * @inheritdoc
+   */
   @Enumerable(false)
   _collectionPath: string = null;
 
+  /**
+   * @inheritdoc
+   */
   @Enumerable(false)
   creationDate: Date = null;
 
+  /**
+   * @inheritdoc
+   */
   @Enumerable(false)
   updateDate: Date = null;
 
   /**
-   * initializes the instance of the model with the given data and location
+   * @inheritdoc
    *
-   * @param data the data to inject in the instance
-   * @param mustachePath the mustache path of the collection
-   * @param location document id and identifiers to set in mustache path
+   * @param data
+   * @param mustachePath
+   * @param location
    */
   initialize(
     data: Partial<M>,
