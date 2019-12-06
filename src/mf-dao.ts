@@ -26,11 +26,20 @@ import {
 } from './helpers/model.helper';
 
 /**
- * Abstract DAO class
+ * @inheritdoc
  */
 export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
+  /**
+   * @inheritdoc
+   */
   public readonly mustachePath: string = Reflect.getMetadata('mustachePath', this.constructor);
 
+  /**
+   * Must be called with super()
+   *
+   * @param db The databse to use to store data
+   * @param storage The bucket where files will be stored
+   */
   constructor(private db: FirebaseFirestore.Firestore, private storage?: Bucket) { }
 
   /////////////////////////////////////
@@ -39,17 +48,35 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
   /////////////////////////////////////
   /////////////////////////////////////
 
+  /**
+   * @inheritdoc
+   *
+   * @param data
+   * @param location
+   */
   abstract getNewModel(data?: Partial<M>, location?: Partial<IMFLocation>): M;
 
-  async get(location: string | IMFLocation, options?: IMFGetOneOptions): Promise<M> {
+  /**
+   * @inheritdoc
+   *
+   * @param idOrLocation
+   * @param options
+   */
+  async get(idOrLocation: string | IMFLocation, options?: IMFGetOneOptions): Promise<M> {
     this.warnOnUnusedOptions('MFDao.getById')(options);
-    if (location && (typeof location === 'string' || location.id)) {
-      const reference = this.getReference(location) as DocumentReference;
+    if (idOrLocation && (typeof idOrLocation === 'string' || idOrLocation.id)) {
+      const reference = this.getReference(idOrLocation) as DocumentReference;
       return this.getByReference(reference, options);
     }
     throw new Error('getById missing parameter : location and/or id');
   }
 
+  /**
+   * @inheritdoc
+   *
+   * @param reference
+   * @param options
+   */
   async getByReference(reference: DocumentReference, options?: IMFGetOneOptions): Promise<M> {
     this.warnOnUnusedOptions('MFDao.getByReference')(options);
     if (reference) {
@@ -63,6 +90,12 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
     }
   }
 
+  /**
+   * @inheritdoc
+   *
+   * @param path
+   * @param options
+   */
   async getByPath(path: string, options?: IMFGetOneOptions): Promise<M> {
     this.warnOnUnusedOptions('MFDao.getByPath')(options);
     if (path) {
@@ -71,14 +104,25 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
     throw new Error('getByPath missing parameter : path');
   }
 
-  getReference(location: string | Partial<IMFLocation>): DocumentReference | CollectionReference {
-    const realLocation = getLocation(location, this.mustachePath);
+  /**
+   * @inheritdoc
+   *
+   * @param idOrLocation
+   */
+  getReference(idOrLocation: string | Partial<IMFLocation>): DocumentReference | CollectionReference {
+    const realLocation = getLocation(idOrLocation, this.mustachePath);
 
     return realLocation.id
       ? this.db.doc(getPath(this.mustachePath, realLocation))
       : this.db.collection(getPath(this.mustachePath, realLocation));
   }
 
+  /**
+   * @inheritdoc
+   *
+   * @param location
+   * @param options
+   */
   async getList(location?: Omit<IMFLocation, 'id'>, options?: IMFGetListOptions<M>): Promise<M[]> {
     this.warnOnUnusedOptions('MFDao.getList')(options);
 
@@ -126,14 +170,21 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
       .then(querySnapshot => querySnapshot.docs.map(documentSnapshot => this.getModelFromSnapshot(documentSnapshot)));
   }
 
-  async create(data: M, location?: string | Partial<IMFLocation>, options?: IMFSaveOptions): Promise<M> {
+  /**
+   * @inheritdoc
+   *
+   * @param data
+   * @param idOrLocation
+   * @param options
+   */
+  async create(data: M, idOrLocation?: string | Partial<IMFLocation>, options?: IMFSaveOptions): Promise<M> {
     if (!allDataExistInModel(data, this.getNewModel())) {
       return Promise.reject('try to update/add an attribute that is not defined in the model');
     }
 
     (data as any)['updateDate'] = FieldValue.serverTimestamp();
     (data as any)['creationDate'] = FieldValue.serverTimestamp();
-    const realLocation = getLocation(location || data, this.mustachePath);
+    const realLocation = getLocation(idOrLocation || data, this.mustachePath);
 
     return this.beforeSave(data, realLocation)
       .then((model) => {
@@ -176,6 +227,13 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
       });
   }
 
+  /**
+   * @inheritdoc
+   *
+   * @param data
+   * @param idOrLocationOrModel
+   * @param options
+   */
   async update(data: Partial<M>, idOrLocationOrModel?: string | IMFLocation | M, options?: IMFUpdateOptions<M>): Promise<Partial<M>> {
     this.warnOnUnusedOptions('MFDao.update')(options);
     if (!allDataExistInModel(data, this.getNewModel())) {
@@ -191,6 +249,12 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
       .then(() => data);
   }
 
+  /**
+   * @inheritdoc
+   *
+   * @param idLocationOrModel
+   * @param options
+   */
   async delete(idLocationOrModel: string | IMFLocation | M, options?: IMFDeleteOptions<M>): Promise<void> {
     this.warnOnUnusedOptions('MFDao.delete')(options);
     const realLocation = getLocation(idLocationOrModel, this.mustachePath);
@@ -208,14 +272,24 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
     return deleteFilesPromise.then(() => (this.getReference(realLocation) as DocumentReference).delete()).then();
   }
 
-  deleteByReference(reference: DocumentReference) {
+  /**
+   * Delete a model by its reference
+   *
+   * @param reference Document reference
+   */
+  deleteByReference(reference: DocumentReference): Promise<void> {
     if (getFileProperties(this.getNewModel()).length) {
       return this.getByReference(reference)
         .then(model => this.delete(model));
     }
-    return reference.delete();
+    return reference.delete().then();
   }
 
+  /**
+   * @inheritdoc
+   *
+   * @param snapshot
+   */
   getModelFromSnapshot(snapshot: DocumentSnapshot): M {
     if (snapshot.exists) {
       return this.getNewModel(
@@ -234,26 +308,58 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
     return null;
   }
 
-  async getSnapshot(location: string | IMFLocation, options?: IMFGetOneOptions): Promise<DocumentSnapshot> {
+  /**
+   * @inheritdoc
+   *
+   * @param idOrLocation
+   * @param options
+   */
+  async getSnapshot(idOrLocation: string | IMFLocation, options?: IMFGetOneOptions): Promise<DocumentSnapshot> {
     this.warnOnUnusedOptions('MFDao.getSnapshot')(options);
-    return (this.getReference(location) as DocumentReference).get();
+    return (this.getReference(idOrLocation) as DocumentReference).get();
   }
 
-  async beforeSave(model: Partial<M>, location?: string | Partial<IMFLocation>): Promise<Partial<M>> {
+  /**
+   * @inheritdoc
+   *
+   * @param model
+   * @param idOrLocation
+   */
+  async beforeSave(model: Partial<M>, idOrLocation?: string | Partial<IMFLocation>): Promise<Partial<M>> {
     return Promise.resolve(model);
   }
 
-  private async saveFiles(newModel: Partial<M>, newLocation: IMFLocation): Promise<{
+  /**
+   * Save files from declared file properties and returns the model with storage informations and location with new document id
+   *
+   * @param model the model for which files must be stored
+   * @param location location of the model
+   * @returns Promise of an object containing the model with storage informations and location with new document id
+   */
+  private async saveFiles(model: Partial<M>, location: IMFLocation): Promise<{
     newModel: Partial<M>,
     newLocation: IMFLocation
   }> {
     throw new Error('Method saveFiles not yet implemented in @modelata/node-fire.');
   }
 
+  /**
+   * @inheritdoc
+   *
+   * @param fileObject
+   * @param location
+   */
   saveFile(fileObject: IMFFile, location: string | IMFLocation): Promise<IMFFile> {
     throw new Error('Method saveFile not yet implemented in @modelata/node-fire.');
   }
 
+  /**
+   * Delete files from declared file properties and returns the model
+   *
+   * @param model the model for which files must be deleted
+   * @param options override delete on delete default option
+   * @returns Promise of the model
+   */
   private async deleteFiles(model: M, options?: IMFDeleteOnDeleteFilesOptions<M>): Promise<M> {
     const fileProperties = getFileProperties(model);
 
@@ -275,6 +381,11 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
       Promise.resolve(model);
   }
 
+  /**
+   * @inheritdoc
+   *
+   * @param fileObject
+   */
   public async deleteFile(fileObject: IMFFile): Promise<void> {
     if (this.storage) {
       return this.storage.file(fileObject.storagePath).delete().then(() => Promise.resolve()).catch((err) => {
@@ -287,12 +398,17 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
     return Promise.reject(new Error('AngularFireStorage was not injected'));
   }
 
-  public isCompatible(doc: M | DocumentReference | CollectionReference): boolean {
+  /**
+   * Check if the model or reference is compatible with this DAO based on its path
+   *
+   * @param modelOrReference Model or reference to chheck
+   */
+  public isCompatible(modelOrReference: M | DocumentReference | CollectionReference): boolean {
     return isCompatiblePath(
       this.mustachePath,
-      (doc as M)._collectionPath ||
-      (doc as DocumentReference).path ||
-      (doc as CollectionReference).path
+      (modelOrReference as M)._collectionPath ||
+      (modelOrReference as DocumentReference).path ||
+      (modelOrReference as CollectionReference).path
     );
   }
 
@@ -302,6 +418,11 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
   /////////////////////////////////////
   /////////////////////////////////////
 
+  /**
+   * Returns a function consuming an options object and displaying a warning if some options are not available in nodejs context
+   *
+   * @param methodName The name of the method where this method was called
+   */
   private warnOnUnusedOptions(methodName: string) {
     return function (options?: any) {
       const unusedOptions = [
@@ -319,11 +440,23 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
     };
   }
 
+  /**
+   * Get the first offset snapshot available (startAt > startAfter > endAt > endBefore)
+   *
+   * @param offsetOption The offset option value used here
+   * @param options get one options to apply
+   */
   private getOffsetSnapshot(offsetOption: IMFOffset<M>, options?: IMFGetOneOptions): Promise<DocumentSnapshot> {
     const offset = offsetOption.startAt || offsetOption.startAfter || offsetOption.endAt || offsetOption.endBefore;
     return typeof offset === 'string' ? this.getSnapshot(offset, options) : Promise.resolve(offset);
   }
 
+  /**
+   * Get a reference from a compatible path
+   *
+   * @param path The path for which get a reference
+   * @return a CollectionReference or a documentReference depending on the path param
+   */
   getReferenceFromPath(path: string): DocumentReference | CollectionReference {
     if (isCompatiblePath(this.mustachePath, path)) {
       const { pathSplitted, mustachePathSplitted } = getSplittedPath(path, this.mustachePath);
@@ -338,6 +471,11 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
     throw new Error('This path is not compatible with this DAO');
   }
 
+  /**
+   * Returns array of file properties names for the partial model consumed or if missing, for the model appliable to this dao
+   *
+   * @param model Some partial or full model
+   */
   private getFileProperties(model?: Partial<M>): string[] {
     return getFileProperties((model || this.getNewModel()) as Object);
   }
