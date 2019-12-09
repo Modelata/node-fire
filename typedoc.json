@@ -1,0 +1,16 @@
+{
+  "out": "docs",
+  "includeDeclarations": true,
+  "exclude": [
+    "**/@google-cloud/**/*",
+    "**/google-auth-library/**/*",
+    "**/typescript/**/*",
+    "**/gtoken/**/*",
+    "**/teeny-request/**/*",
+    "**/@types/**/*",
+    "**/abort-controller/**/*",
+    "**/event-target-shim/**/*",
+    "**/gaxios/**/*",
+    "**/reflect-metadata/**/*"
+  ]
+}

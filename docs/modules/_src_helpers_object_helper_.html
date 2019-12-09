@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>&quot;mf-model&quot; | @modelata/node-fire</title>
+	<title>&quot;src/helpers/object.helper&quot; | @modelata/node-fire</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -56,10 +56,10 @@
 					<a href="../globals.html">Globals</a>
 				</li>
 				<li>
-					<a href="_mf_model_.html">&quot;mf-model&quot;</a>
+					<a href="_src_helpers_object_helper_.html">&quot;src/helpers/object.helper&quot;</a>
 				</li>
 			</ul>
-			<h1>External module &quot;mf-model&quot;</h1>
+			<h1>External module &quot;src/helpers/object.helper&quot;</h1>
 		</div>
 	</div>
 </header>
@@ -71,12 +71,58 @@
 				<section class="tsd-panel tsd-index-panel">
 					<div class="tsd-index-content">
 						<section class="tsd-index-section ">
-							<h3>Classes</h3>
+							<h3>Functions</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-class tsd-parent-kind-external-module tsd-has-type-parameter"><a href="../classes/_mf_model_.mfmodel.html" class="tsd-kind-icon">MFModel</a></li>
+								<li class="tsd-kind-function tsd-parent-kind-external-module"><a href="_src_helpers_object_helper_.html#createhiddenproperty" class="tsd-kind-icon">create<wbr>Hidden<wbr>Property</a></li>
 							</ul>
 						</section>
 					</div>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Functions</h2>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-external-module">
+					<a name="createhiddenproperty" class="tsd-anchor"></a>
+					<h3>create<wbr>Hidden<wbr>Property</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-external-module">
+						<li class="tsd-signature tsd-kind-icon">create<wbr>Hidden<wbr>Property<span class="tsd-signature-symbol">(</span>obj<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Object</span>, propName<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, propVal<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/Moventes/modelata-node-fire/blob/ef315ed/src/helpers/object.helper.ts#L8">src/helpers/object.helper.ts:8</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Adds an hidden property to object. Hidden property name will start with an underscore.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>obj: <span class="tsd-signature-type">Object</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Object to which add an hidden property</p>
+									</div>
+								</li>
+								<li>
+									<h5>propName: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Name of the property (without underscore)</p>
+									</div>
+								</li>
+								<li>
+									<h5>propVal: <span class="tsd-signature-type">any</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Value of the hidden property</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
 				</section>
 			</section>
 		</div>
@@ -86,42 +132,15 @@
 					<li class="globals  ">
 						<a href="../globals.html"><em>Globals</em></a>
 					</li>
-					<li class=" tsd-kind-external-module">
-						<a href="_decorators_collection_path_decorator_.html">&quot;decorators/collection-<wbr>path.decorator&quot;</a>
-					</li>
-					<li class=" tsd-kind-external-module">
-						<a href="_decorators_enumerable_decorator_.html">&quot;decorators/enumerable.decorator&quot;</a>
-					</li>
-					<li class=" tsd-kind-external-module">
-						<a href="_decorators_storage_property_decorator_.html">&quot;decorators/storage-<wbr>property.decorator&quot;</a>
-					</li>
-					<li class=" tsd-kind-external-module">
-						<a href="_helpers_missing_field_notifier_.html">&quot;helpers/missing-<wbr>field-<wbr>notifier&quot;</a>
-					</li>
-					<li class=" tsd-kind-external-module">
-						<a href="_helpers_model_helper_.html">&quot;helpers/model.helper&quot;</a>
-					</li>
-					<li class=" tsd-kind-external-module">
-						<a href="_helpers_object_helper_.html">&quot;helpers/object.helper&quot;</a>
-					</li>
-					<li class=" tsd-kind-external-module">
-						<a href="_helpers_string_helper_.html">&quot;helpers/string.helper&quot;</a>
-					</li>
-					<li class=" tsd-kind-external-module">
-						<a href="_index_.html">&quot;index&quot;</a>
-					</li>
-					<li class=" tsd-kind-external-module">
-						<a href="_mf_dao_.html">&quot;mf-<wbr>dao&quot;</a>
-					</li>
 					<li class="current tsd-kind-external-module">
-						<a href="_mf_model_.html">&quot;mf-<wbr>model&quot;</a>
+						<a href="_src_helpers_object_helper_.html">&quot;src/helpers/object.helper&quot;</a>
 					</li>
 				</ul>
 			</nav>
 			<nav class="tsd-navigation secondary menu-sticky">
 				<ul class="before-current">
-					<li class=" tsd-kind-class tsd-parent-kind-external-module tsd-has-type-parameter">
-						<a href="../classes/_mf_model_.mfmodel.html" class="tsd-kind-icon">MFModel</a>
+					<li class=" tsd-kind-function tsd-parent-kind-external-module">
+						<a href="_src_helpers_object_helper_.html#createhiddenproperty" class="tsd-kind-icon">create<wbr>Hidden<wbr>Property</a>
 					</li>
 				</ul>
 			</nav>
