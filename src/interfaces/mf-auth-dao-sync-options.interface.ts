@@ -3,5 +3,5 @@ export interface IMFAuthDaoSyncOptions {
   email?: boolean;
   phoneNumber?: boolean;
   photoURL?: boolean;
-  provider?: boolean;
+  providerData?: boolean;
 }

@@ -32,7 +32,7 @@ export abstract class MFAuthDAO {
             return Object.keys(updateValue).length > 0 ? this.db.doc(pathMap.documentPath.replace('{userId}', userId))
               .set(updateValue) : Promise.resolve(null);
           })
-        )
+        );
       })
       .then();
   }
