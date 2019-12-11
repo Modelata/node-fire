@@ -1,6 +1,6 @@
 {
   "name": "@modelata/node-fire",
-  "version": "3.0.0-dev8",
+  "version": "3.0.0-dev14",
   "description": "Modelata abstract layer for firebase-admin sdk in node.js",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -29,7 +29,7 @@
   },
   "homepage": "https://github.com/Moventes/modelata-node-fire#readme",
   "dependencies": {
-    "@modelata/types-fire": "3.0.1-dev10"
+    "@modelata/types-fire": "^3.0.1-dev11"
   },
   "devDependencies": {
     "firebase-admin": "8.7.0",
