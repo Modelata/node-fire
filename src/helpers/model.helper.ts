@@ -1,5 +1,4 @@
-import { IMFLocation } from '@modelata/types-fire/lib/node';
-import { mustache } from './string.helper';
+import { IMFLocation, mustache } from '@modelata/fire/lib/node';
 import { MFModel } from '../mf-model';
 
 /**
@@ -186,5 +185,17 @@ export function getSavableData<M>(modelObj: M): Partial<M> {
 export function getFileProperties(model: Object): string[] {
   return Object.keys(model).filter((key) => {
     return Reflect.hasMetadata('storageProperty', model as Object, key);
+  });
+}
+
+/**
+ * returns list of AuthUser properties
+ *
+ * @param model The model object
+ * @return array of AuthUser properties names
+ */
+export function getAuthUserProperties(model: Object): string[] {
+  return Object.keys(model).filter((key) => {
+    return Reflect.hasMetadata('authUserProperty', model as Object, key);
   });
 }
