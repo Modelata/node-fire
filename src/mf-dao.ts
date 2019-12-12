@@ -10,7 +10,7 @@ import {
   IMFUpdateOptions,
   IMFDeleteOptions,
   IMFDeleteOnDeleteFilesOptions
-} from '@modelata/types-fire/lib/node';
+} from '@modelata/fire/lib/node';
 import { DocumentReference, DocumentSnapshot, FieldValue, CollectionReference } from '@google-cloud/firestore';
 import { Bucket } from '@google-cloud/storage';
 import 'reflect-metadata';

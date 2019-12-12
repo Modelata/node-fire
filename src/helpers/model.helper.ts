@@ -1,5 +1,4 @@
-import { IMFLocation } from '@modelata/types-fire/lib/node';
-import { mustache } from './string.helper';
+import { IMFLocation, mustache } from '@modelata/fire/lib/node';
 import { MFModel } from '../mf-model';
 
 /**
