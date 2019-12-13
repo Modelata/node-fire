@@ -1,12 +1,13 @@
 import { MFDao } from './mf-dao';
 import { MFModel } from './mf-model';
 import * as admin from 'firebase-admin';
-import { IMFUserInterface } from './interfaces/mf-user.interface';
 import { IMFAuthDaoSyncOptions } from './interfaces/mf-auth-dao-sync-options.interface';
-import { getAuthUserProperties } from './helpers/model.helper';
+import { getAuthUserProperties } from '@modelata/fire/lib/node';
+import { MFAuthUserProperties } from './enums';
+import { MFFlattableDao } from './mf-flattable-dao';
 
-export abstract class MFAuthDAO<UserModel extends MFModel<UserModel>, UserDao extends MFDao<UserModel>> {
-  usersCollectionPath: string;
+export abstract class MFAuthDAO<UserModel extends MFModel<UserModel>, UserDao extends MFDao<UserModel> | MFFlattableDao<UserModel>> {
+  usersCollectionPath: string = Reflect.getMetadata('usersCollectionPath', this.constructor);
 
   constructor(
     private auth: admin.auth.Auth,
@@ -15,24 +16,57 @@ export abstract class MFAuthDAO<UserModel extends MFModel<UserModel>, UserDao ex
   ) { }
 
   updateUserDocumentFromAuth(userId: string, options?: IMFAuthDaoSyncOptions): Promise<void> {
-
+    return this.auth.getUser(userId)
+      .then((authUser) => {
+        console.log(authUser);
+        return getAuthUserProperties(this.userDao.getNewModel()).reduce(
+          (updateValue: any, propertyName) => {
+            if (
+              (authUser as any)[propertyName] !== undefined &&
+              (!options || (options && options.propertiesToSync && options.propertiesToSync[propertyName as MFAuthUserProperties]))
+            ) {
+              updateValue[propertyName] = (authUser as any)[propertyName];
+            }
+            return updateValue;
+          },
+          {}
+        );
+      }
+      )
+      .then((updateValue) => {
+        if (Object.keys(updateValue).length) {
+          console.log('MFAuthDAO.updateUserDocumentFromAuth updateValue', updateValue);
+          return this.userDao.update(updateValue, userId)
+            .then();
+        }
+        console.log('MFAuthDAO.updateUserDocumentFromAuth nothing to update');
+        return Promise.resolve();
+      });
   }
 
   updateAuthUserFromDocument(userId: string, options?: IMFAuthDaoSyncOptions): Promise<void> {
-    return this.userDao.getByPath(`${this.usersCollectionPath}/${userId}`)
-      .then((user: UserModel) => getAuthUserProperties(user).reduce(
-        (updateValue: any, propertyName) => {
-          if ((user as any)[propertyName] !== undefined) {
-            updateValue[propertyName] = (user as any)[propertyName];
-          }
-          return updateValue;
-        },
-        {}
-      ))
+    return this.userDao.get(userId)
+      .then((user: UserModel) => {
+        console.log(user);
+        return getAuthUserProperties(user).reduce(
+          (updateValue: any, propertyName) => {
+            if (
+              (user as any)[propertyName] !== undefined &&
+              (!options || (options && options.propertiesToSync && options.propertiesToSync[propertyName as MFAuthUserProperties]))
+            ) {
+              updateValue[propertyName] = (user as any)[propertyName];
+            }
+            return updateValue;
+          },
+          {}
+        );
+      })
       .then((updateValue) => {
         if (Object.keys(updateValue)) {
-          return this.auth.updateUser(userId, updateValue).then();
+          console.log('MFAuthDAO.updateAuthUserFromDocument updateValue', updateValue);
+          return this.auth.updateUser(userId, updateValue).then(console.log);
         }
+        console.log('MFAuthDAO.updateAuthUserFromDocument nothing to update');
         return Promise.resolve();
       });
   }
