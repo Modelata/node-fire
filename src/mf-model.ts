@@ -1,5 +1,4 @@
-import { Enumerable, MissingFieldNotifier, createHiddenProperty, IMFModel, IMFLocation } from '@modelata/fire/lib/node';
-import { getPath } from './helpers/model.helper';
+import { getPath, Enumerable, MissingFieldNotifier, createHiddenProperty, IMFModel, IMFLocation } from '@modelata/fire/lib/node';
 
 export abstract class MFModel<M> implements IMFModel<M> {
   /**
@@ -62,7 +61,6 @@ export abstract class MFModel<M> implements IMFModel<M> {
           !key.startsWith('$') &&
           typeof data[key] !== 'function'
         ) {
-          // console.log(this);
           if (this.hasOwnProperty(key)) {
             if (data[key] && typeof (data[key] as any).toDate === 'function') {
               (this as any)[key] = (data[key] as any).toDate();

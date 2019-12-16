@@ -9,13 +9,7 @@ import {
   IMFStorageOptions,
   IMFUpdateOptions,
   IMFDeleteOptions,
-  IMFDeleteOnDeleteFilesOptions
-} from '@modelata/fire/lib/node';
-import { DocumentReference, DocumentSnapshot, FieldValue, CollectionReference } from '@google-cloud/firestore';
-import { Bucket } from '@google-cloud/storage';
-import 'reflect-metadata';
-import { MFModel } from './mf-model';
-import {
+  IMFDeleteOnDeleteFilesOptions,
   isCompatiblePath,
   getPath,
   getLocation,
@@ -23,7 +17,12 @@ import {
   getSavableData,
   getSplittedPath,
   getFileProperties
-} from './helpers/model.helper';
+} from '@modelata/fire/lib/node';
+import { DocumentReference, DocumentSnapshot, FieldValue, CollectionReference } from '@google-cloud/firestore';
+import { Bucket } from '@google-cloud/storage';
+import 'reflect-metadata';
+import { MFModel } from './mf-model';
+
 
 /**
  * @inheritdoc
@@ -40,7 +39,10 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
    * @param db The databse to use to store data
    * @param storage The bucket where files will be stored
    */
-  constructor(private db: FirebaseFirestore.Firestore, private storage?: Bucket) { }
+  constructor(
+    protected db: FirebaseFirestore.Firestore,
+    protected storage?: Bucket
+  ) { }
 
   /////////////////////////////////////
   /////////////////////////////////////
@@ -364,7 +366,7 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
     const fileProperties = getFileProperties(model);
 
     return fileProperties.length ?
-      Promise.all(fileProperties.filter(key => (model as any)[key]).map((key) => {
+      Promise.all(fileProperties.filter((key: string) => (model as any)[key]).map((key: string) => {
         const property = (model as any)[key] as IMFFile;
         if (
           property
