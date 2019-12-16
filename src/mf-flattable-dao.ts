@@ -86,7 +86,6 @@ export abstract class MFFlattableDao<M extends MFModel<M>> extends MFDao<M>{
                 warnOnMissing: false
               }
             ).then((model) => {
-              console.log('got one subdoc');
               return { model, subDocPath: `${subDaoPath}/${docId}` } as IMFSubDocWithPath;
             }).catch((err) => {
               if (err.code === 'permission-denied') {
@@ -109,31 +108,19 @@ export abstract class MFFlattableDao<M extends MFModel<M>> extends MFDao<M>{
       },
       {}
     )).then((result) => {
-      console.log('got sub docs');
       return result;
     });
   }
 
-  public async get(location: string | IMFLocation, options: IMFGetOneOptions = {}): Promise<M> {
-    const realLocation = getLocation(location, this.mustachePath) as IMFLocation;
+  public async getByReference(reference: DocumentReference, options?: IMFGetOneOptions): Promise<M> {
+    const realLocation = getLocationFromPath(reference.parent.path, this.mustachePath, reference.id) as IMFLocation;
     let mainModel: M;
-    return super.get(location, options)
+    return super.getByReference(reference, options)
       .then((model) => {
-        console.log('got main model');
         mainModel = model;
         return this.get_subDocs(realLocation, options);
       })
       .then(subDocsByPath => mergeModels(mainModel, subDocsByPath));
-
-  }
-
-  public async getByReference(reference: DocumentReference, options?: IMFGetOneOptions): Promise<M> {
-    const realLocation = getLocationFromPath(reference.parent.path, this.mustachePath, reference.id) as IMFLocation;
-    return this.get(realLocation, options);
-  }
-
-  public async getByPath(path: string, options?: IMFGetOneOptions): Promise<M> {
-    return this.getByReference(this.db.doc(path), options);
   }
 
   private async getModelWithSubDocsFromMainModel(mainModel: M, options: IMFGetOneOptions = {}): Promise<M> {

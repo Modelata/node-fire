@@ -61,7 +61,6 @@ export abstract class MFModel<M> implements IMFModel<M> {
           !key.startsWith('$') &&
           typeof data[key] !== 'function'
         ) {
-          // console.log(this);
           if (this.hasOwnProperty(key)) {
             if (data[key] && typeof (data[key] as any).toDate === 'function') {
               (this as any)[key] = (data[key] as any).toDate();

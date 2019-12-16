@@ -18,7 +18,6 @@ export abstract class MFAuthDAO<UserModel extends MFModel<UserModel>, UserDao ex
   updateUserDocumentFromAuth(userId: string, options?: IMFAuthDaoSyncOptions): Promise<void> {
     return this.auth.getUser(userId)
       .then((authUser) => {
-        console.log(authUser);
         return getAuthUserProperties(this.userDao.getNewModel()).reduce(
           (updateValue: any, propertyName) => {
             if (
@@ -35,7 +34,6 @@ export abstract class MFAuthDAO<UserModel extends MFModel<UserModel>, UserDao ex
       )
       .then((updateValue) => {
         if (Object.keys(updateValue).length) {
-          console.log('MFAuthDAO.updateUserDocumentFromAuth updateValue', updateValue);
           return this.userDao.update(updateValue, userId)
             .then();
         }
@@ -47,7 +45,6 @@ export abstract class MFAuthDAO<UserModel extends MFModel<UserModel>, UserDao ex
   updateAuthUserFromDocument(userId: string, options?: IMFAuthDaoSyncOptions): Promise<void> {
     return this.userDao.get(userId)
       .then((user: UserModel) => {
-        console.log(user);
         return getAuthUserProperties(user).reduce(
           (updateValue: any, propertyName) => {
             if (
@@ -63,8 +60,7 @@ export abstract class MFAuthDAO<UserModel extends MFModel<UserModel>, UserDao ex
       })
       .then((updateValue) => {
         if (Object.keys(updateValue)) {
-          console.log('MFAuthDAO.updateAuthUserFromDocument updateValue', updateValue);
-          return this.auth.updateUser(userId, updateValue).then(console.log);
+          return this.auth.updateUser(userId, updateValue).then();
         }
         console.log('MFAuthDAO.updateAuthUserFromDocument nothing to update');
         return Promise.resolve();
