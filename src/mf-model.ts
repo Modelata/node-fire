@@ -1,4 +1,11 @@
-import { getPath, Enumerable, MissingFieldNotifier, createHiddenProperty, IMFModel, IMFLocation } from '@modelata/fire/lib/node';
+import {
+  getPath,
+  Enumerable,
+  MissingFieldNotifier,
+  createHiddenProperty,
+  IMFModel,
+  IMFLocation
+} from '@modelata/fire/lib/node';
 
 export abstract class MFModel<M> implements IMFModel<M> {
   /**

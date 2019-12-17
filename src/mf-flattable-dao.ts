@@ -11,16 +11,16 @@ import {
   getLocationFromPath,
   getSubPaths,
   mergeModels,
-  getPath
+  getPath,
+  IMFSubDocWithPath,
+  IMFSubDocByPath,
 } from '@modelata/fire/lib/node';
 import { MFDao } from './mf-dao';
 import { MFModel } from './mf-model';
 import { SubMFDao } from './mf-sub-dao';
 import { Bucket } from '@google-cloud/storage';
 import { IMFSubDAOs } from './interfaces/mf-sub-daos.interface';
-import { IMFSubDocWithPath } from './interfaces/mf-sub-doc-with-path.interface';
 import { DocumentReference } from '@google-cloud/firestore';
-import { IMFSubDocByPath } from './interfaces/mf-sub-doc-by-path.interface';
 
 /**
  * Abstract Flattable DAO class
@@ -237,14 +237,4 @@ export abstract class MFFlattableDao<M extends MFModel<M>> extends MFDao<M>{
       this.update_subDocs(data, getLocation(location || (data as M), this.mustachePath) as IMFLocation, options)
     ]).then(() => data);
   }
-
-
-  // public getModelFromSnapshot(snapshot: firestore.DocumentSnapshot): M {
-  // impossible à implementer
-  // }
-
-  // appelé une fois par model
-  // public async beforeSave(model: Partial<M>, location?: string | Partial<IMFLocation>): Promise<Partial<M>> {
-  //   return Promise.resolve(model);
-  // }
 }

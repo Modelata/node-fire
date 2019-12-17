@@ -28,23 +28,6 @@ export class SubMFDao extends MFDao<any> {
     );
   }
 
-  // extractMyData(data: Object): Object {
-  //     const refModel = this.referentGetNewModel(data);
-  //     return Object.keys(refModel).reduce(
-  //         (myData, key) => {
-  //             if (
-  //                 Reflect.hasMetadata('subDocPath', refModel, key) &&
-  //                 this.mustachePath.endsWith(Reflect.getMetadata('subDocPath', refModel, key).split('/')[0]) &&
-  //                 data.hasOwnProperty(key)
-  //             ) {
-  //                 (myData as any)[key] = (data as any)[key];
-  //             }
-  //             return myData;
-  //         },
-  //         {}
-  //     );
-  // }
-
   splitDataByDocId(data: Partial<any>): { [docId: string]: object } {
     const refModel = this.referentGetNewModel(data);
     return Object.keys(refModel).reduce(
@@ -52,8 +35,6 @@ export class SubMFDao extends MFDao<any> {
         if (
           Reflect.hasMetadata('subDocPath', refModel, key) &&
           this.mustachePath.endsWith(Reflect.getMetadata('subDocPath', refModel, key).split('/')[0])
-          //  &&
-          // (data as Object).hasOwnProperty(key) // comment for create empty subDoc
         ) {
           const docId = Reflect.getMetadata('subDocPath', refModel, key).split('/')[1];
           if (!(dataById as any)[docId]) {

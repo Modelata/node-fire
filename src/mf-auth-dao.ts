@@ -1,9 +1,7 @@
 import { MFDao } from './mf-dao';
 import { MFModel } from './mf-model';
 import * as admin from 'firebase-admin';
-import { IMFAuthDaoSyncOptions } from './interfaces/mf-auth-dao-sync-options.interface';
-import { getAuthUserProperties } from '@modelata/fire/lib/node';
-import { MFAuthUserProperties } from './enums';
+import { MFAuthUserProperties, IMFAuthDaoSyncOptions, getAuthUserProperties } from '@modelata/fire/lib/node';
 import { MFFlattableDao } from './mf-flattable-dao';
 
 export abstract class MFAuthDAO<UserModel extends MFModel<UserModel>, UserDao extends MFDao<UserModel> | MFFlattableDao<UserModel>> {
