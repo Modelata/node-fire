@@ -16,7 +16,8 @@ import {
   allDataExistInModel,
   getSavableData,
   getSplittedPath,
-  getFileProperties
+  getFileProperties,
+  MFLogger
 } from '@modelata/fire/lib/node';
 import { DocumentReference, DocumentSnapshot, FieldValue, CollectionReference } from '@google-cloud/firestore';
 import { Bucket } from '@google-cloud/storage';
@@ -221,8 +222,8 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
             this.getNewModel(data, { ...realLocation, id: ref.id })
           )
           .catch((error) => {
-            console.error(error);
-            console.log('error for ', data);
+            MFLogger.error(error);
+            MFLogger.debugLibrary('error for ', data);
             return Promise.reject(error);
           });
 
@@ -303,7 +304,7 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
         }
       );
     }
-    console.error(
+    MFLogger.error(
       '[firestoreDao] - getNewModelFromDb return null because dbObj.exists is null or false. dbObj :',
       snapshot
     );
@@ -435,7 +436,7 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
       if (options) {
         unusedOptions.map((key) => {
           if (options[key]) {
-            console.warn(`The '${key}' option is unused in node-fire, it will be ignored...`);
+            MFLogger.debugLibrary(`The '${key}' option is unused in node-fire, it will be ignored...`);
           }
         });
       }

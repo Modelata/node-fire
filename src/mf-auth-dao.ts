@@ -1,7 +1,12 @@
 import { MFDao } from './mf-dao';
 import { MFModel } from './mf-model';
 import * as admin from 'firebase-admin';
-import { MFAuthUserProperties, IMFAuthDaoSyncOptions, getAuthUserProperties } from '@modelata/fire/lib/node';
+import {
+  MFAuthUserProperties,
+  IMFAuthDaoSyncOptions,
+  getAuthUserProperties,
+  MFLogger,
+} from '@modelata/fire/lib/node';
 import { MFFlattableDao } from './mf-flattable-dao';
 
 export abstract class MFAuthDAO<UserModel extends MFModel<UserModel>, UserDao extends MFDao<UserModel> | MFFlattableDao<UserModel>> {
@@ -35,7 +40,7 @@ export abstract class MFAuthDAO<UserModel extends MFModel<UserModel>, UserDao ex
           return this.userDao.update(updateValue, userId)
             .then();
         }
-        console.log('MFAuthDAO.updateUserDocumentFromAuth nothing to update');
+        MFLogger.debugLibrary('MFAuthDAO.updateUserDocumentFromAuth nothing to update');
         return Promise.resolve();
       });
   }
@@ -60,7 +65,7 @@ export abstract class MFAuthDAO<UserModel extends MFModel<UserModel>, UserDao ex
         if (Object.keys(updateValue)) {
           return this.auth.updateUser(userId, updateValue).then();
         }
-        console.log('MFAuthDAO.updateAuthUserFromDocument nothing to update');
+        MFLogger.debugLibrary('MFAuthDAO.updateAuthUserFromDocument nothing to update');
         return Promise.resolve();
       });
   }

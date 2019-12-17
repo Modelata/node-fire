@@ -14,6 +14,7 @@ import {
   getPath,
   IMFSubDocWithPath,
   IMFSubDocByPath,
+  MFLogger,
 } from '@modelata/fire/lib/node';
 import { MFDao } from './mf-dao';
 import { MFModel } from './mf-model';
@@ -37,8 +38,8 @@ export abstract class MFFlattableDao<M extends MFModel<M>> extends MFDao<M>{
     super(db, storage);
     this.initAllSubDao();
     if (!this.subDAOs || Object.keys(this.subDAOs).length < 1) {
-      console.error(`${this.mustachePath} DAO EXTENDS MFFlattableDao But the model dont use any data stored in other document !! `);
-      console.error(`${this.mustachePath} DAO MUST EXTENDS MFDao instead`);
+      MFLogger.error(`${this.mustachePath} DAO EXTENDS MFFlattableDao But the model dont use any data stored in other document !! `);
+      MFLogger.error(`${this.mustachePath} DAO MUST EXTENDS MFDao instead`);
     }
   }
 
