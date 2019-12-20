@@ -27,10 +27,17 @@ import { DocumentReference } from '@google-cloud/firestore';
  * Abstract Flattable DAO class
  */
 export abstract class MFFlattableDao<M extends MFModel<M>> extends MFDao<M>{
-
-
+  /**
+   * List of sub daos used
+   */
   private subDAOs: IMFSubDAOs = {};
 
+  /**
+   * @inheritdoc
+   *
+   * @param db
+   * @param storage
+   */
   constructor(
     db: FirebaseFirestore.Firestore,
     storage?: Bucket
@@ -43,6 +50,9 @@ export abstract class MFFlattableDao<M extends MFModel<M>> extends MFDao<M>{
     }
   }
 
+  /**
+   * Create all sub daos used
+   */
   private initAllSubDao() {
     const refModel = this.getNewModel();
     const subPaths = getSubPaths(refModel);
@@ -63,14 +73,22 @@ export abstract class MFFlattableDao<M extends MFModel<M>> extends MFDao<M>{
     );
   }
 
-
+  /**
+   * Creates one sub dao
+   *
+   * @param subDaoPath path used by the sub dao
+   */
   private instantiateSubDao(subDaoPath: string): SubMFDao {
     const subMustachePath = concatMustachePaths(this.mustachePath, subDaoPath);
     return new SubMFDao(subMustachePath, this.db, this.getNewModel, this.beforeSave, this.storage);
   }
 
-
-
+  /**
+   * Fetch all subdocs
+   *
+   * @param parentLocation Location of the parent document
+   * @param options Options to apply to fetch one subdoc
+   */
   private async get_subDocs(parentLocation: IMFLocation, options: IMFGetOneOptions = {}): Promise<IMFSubDocByPath> {
     return Promise.all(
       Object.keys(this.subDAOs)
@@ -113,6 +131,12 @@ export abstract class MFFlattableDao<M extends MFModel<M>> extends MFDao<M>{
     });
   }
 
+  /**
+   * @inheritdoc
+   *
+   * @param reference
+   * @param options
+   */
   public async getByReference(reference: DocumentReference, options?: IMFGetOneOptions): Promise<M> {
     const realLocation = getLocationFromPath(reference.parent.path, this.mustachePath, reference.id) as IMFLocation;
     let mainModel: M;
@@ -124,12 +148,24 @@ export abstract class MFFlattableDao<M extends MFModel<M>> extends MFDao<M>{
       .then(subDocsByPath => mergeModels(mainModel, subDocsByPath));
   }
 
+  /**
+   * Rebuild a model with data from subdocuments
+   *
+   * @param mainModel The main model
+   * @param options Options to apply to fetch subdocs
+   */
   private async getModelWithSubDocsFromMainModel(mainModel: M, options: IMFGetOneOptions = {}): Promise<M> {
     const location = getLocation(mainModel, this.mustachePath) as IMFLocation;
     return this.get_subDocs(location, options)
       .then(subDocsByPath => mergeModels(mainModel, subDocsByPath));
   }
 
+  /**
+   * @inheritdoc
+   *
+   * @param location
+   * @param options
+   */
   public async getList(location?: MFOmit<IMFLocation, 'id'>, options: IMFGetListOptions<M> = {}): Promise<M[]> {
     return super.getList(location, options)
       .then(models => Promise.all(
@@ -138,6 +174,11 @@ export abstract class MFFlattableDao<M extends MFModel<M>> extends MFDao<M>{
       );
   }
 
+  /**
+   * extract from main model data intended to sub model
+   *
+   * @param data main model data
+   */
   extractMyData(data: Partial<M>): Partial<M> {
     const refModel = this.getNewModel(data);
     return Object.keys(refModel).reduce(
@@ -154,6 +195,13 @@ export abstract class MFFlattableDao<M extends MFModel<M>> extends MFDao<M>{
     );
   }
 
+  /**
+   * Create subdocuments (even empty ones)
+   *
+   * @param data Subdocument data
+   * @param parentLocation Location of parent document
+   * @param options Create options
+   */
   private create_subDocs(
     data: Partial<M>,
     parentLocation: IMFLocation,
@@ -183,6 +231,13 @@ export abstract class MFFlattableDao<M extends MFModel<M>> extends MFDao<M>{
     );
   }
 
+  /**
+   * @inheritdoc
+   *
+   * @param data
+   * @param location
+   * @param options
+   */
   public async create(data: M, location?: string | Partial<IMFLocation>, options: IMFSaveOptions = {}): Promise<M> {
     const realLocation = getLocation(location, this.mustachePath) as IMFLocation;
     if (!realLocation.id) {
@@ -208,6 +263,13 @@ export abstract class MFFlattableDao<M extends MFModel<M>> extends MFDao<M>{
     });
   }
 
+  /**
+   * Update subdocuments the same way normal update does
+   *
+   * @param data Subdocument data
+   * @param parentLocation Location of the parent document
+   * @param options Update options
+   */
   private async update_subDocs(data: Partial<M>, parentLocation?: IMFLocation, options: IMFUpdateOptions<M> = {}): Promise<Partial<M>[]> {
     return Promise.all(
       Object.keys(this.subDAOs).reduce(
@@ -231,6 +293,13 @@ export abstract class MFFlattableDao<M extends MFModel<M>> extends MFDao<M>{
     );
   }
 
+  /**
+   * @inheritdoc
+   *
+   * @param data
+   * @param location
+   * @param options
+   */
   public async update(data: Partial<M>, location?: string | IMFLocation | M, options: IMFUpdateOptions<M> = {}): Promise<Partial<M>> {
     const mainData = this.extractMyData(data);
     return Promise.all([

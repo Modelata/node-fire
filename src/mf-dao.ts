@@ -280,7 +280,7 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
    *
    * @param reference Document reference
    */
-  deleteByReference(reference: DocumentReference): Promise<void> {
+  async deleteByReference(reference: DocumentReference): Promise<void> {
     if (getFileProperties(this.getNewModel()).length) {
       return this.getByReference(reference)
         .then(model => this.delete(model));
@@ -352,7 +352,7 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
    * @param fileObject
    * @param location
    */
-  saveFile(fileObject: IMFFile, location: string | IMFLocation): Promise<IMFFile> {
+  async saveFile(fileObject: IMFFile, location: string | IMFLocation): Promise<IMFFile> {
     throw new Error('Method saveFile not yet implemented in @modelata/node-fire.');
   }
 
@@ -449,7 +449,7 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
    * @param offsetOption The offset option value used here
    * @param options get one options to apply
    */
-  private getOffsetSnapshot(offsetOption: IMFOffset<M>, options?: IMFGetOneOptions): Promise<DocumentSnapshot> {
+  private async getOffsetSnapshot(offsetOption: IMFOffset<M>, options?: IMFGetOneOptions): Promise<DocumentSnapshot> {
     const offset = offsetOption.startAt || offsetOption.startAfter || offsetOption.endAt || offsetOption.endBefore;
     return typeof offset === 'string' ? this.getSnapshot(offset, options) : Promise.resolve(offset);
   }

@@ -9,16 +9,28 @@ import {
 } from '@modelata/fire/lib/node';
 import { MFFlattableDao } from './mf-flattable-dao';
 
+/**
+ * Abstract class allowing to sync user document with authUser
+ */
 export abstract class MFAuthDAO<UserModel extends MFModel<UserModel>, UserDao extends MFDao<UserModel> | MFFlattableDao<UserModel>> {
-  usersCollectionPath: string = Reflect.getMetadata('usersCollectionPath', this.constructor);
-
+  /**
+   * Called with super
+   *
+   * @param auth Firebase auth service
+   * @param userDao Dao used to interact with user document
+   */
   constructor(
     private auth: admin.auth.Auth,
-    private db: FirebaseFirestore.Firestore,
     private userDao: UserDao,
   ) { }
 
-  updateUserDocumentFromAuth(userId: string, options?: IMFAuthDaoSyncOptions): Promise<void> {
+  /**
+   * Updates user document with data from auth user
+   *
+   * @param userId Uid of the auth user (as well as user document id)
+   * @param options (properties to sync)
+   */
+  async updateUserDocumentFromAuth(userId: string, options?: IMFAuthDaoSyncOptions): Promise<void> {
     return this.auth.getUser(userId)
       .then((authUser) => {
         return getAuthUserProperties(this.userDao.getNewModel()).reduce(
@@ -45,7 +57,13 @@ export abstract class MFAuthDAO<UserModel extends MFModel<UserModel>, UserDao ex
       });
   }
 
-  updateAuthUserFromDocument(userId: string, options?: IMFAuthDaoSyncOptions): Promise<void> {
+  /**
+   * Updates authUser with data from user document
+   *
+   * @param userId Uid of the auth user (as well as user document id)
+   * @param options (properties to sync)
+   */
+  async updateAuthUserFromDocument(userId: string, options?: IMFAuthDaoSyncOptions): Promise<void> {
     return this.userDao.get(userId)
       .then((user: UserModel) => {
         return getAuthUserProperties(user).reduce(
