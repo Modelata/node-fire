@@ -9,21 +9,21 @@ import {
   IMFStorageOptions,
   IMFUpdateOptions,
   IMFDeleteOptions,
-  IMFDeleteOnDeleteFilesOptions
-} from '@modelata/types-fire/lib/node';
-import { DocumentReference, DocumentSnapshot, FieldValue, CollectionReference } from '@google-cloud/firestore';
-import { Bucket } from '@google-cloud/storage';
-import 'reflect-metadata';
-import { MFModel } from './mf-model';
-import {
+  IMFDeleteOnDeleteFilesOptions,
   isCompatiblePath,
   getPath,
   getLocation,
   allDataExistInModel,
   getSavableData,
   getSplittedPath,
-  getFileProperties
-} from './helpers/model.helper';
+  getFileProperties,
+  MFLogger
+} from '@modelata/fire/lib/node';
+import { DocumentReference, DocumentSnapshot, FieldValue, CollectionReference } from '@google-cloud/firestore';
+import { Bucket } from '@google-cloud/storage';
+import 'reflect-metadata';
+import { MFModel } from './mf-model';
+
 
 /**
  * @inheritdoc
@@ -40,7 +40,10 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
    * @param db The databse to use to store data
    * @param storage The bucket where files will be stored
    */
-  constructor(private db: FirebaseFirestore.Firestore, private storage?: Bucket) { }
+  constructor(
+    protected db: FirebaseFirestore.Firestore,
+    protected storage?: Bucket
+  ) { }
 
   /////////////////////////////////////
   /////////////////////////////////////
@@ -219,8 +222,8 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
             this.getNewModel(data, { ...realLocation, id: ref.id })
           )
           .catch((error) => {
-            console.error(error);
-            console.log('error for ', data);
+            MFLogger.error(error);
+            MFLogger.debugLibrary('error for ', data);
             return Promise.reject(error);
           });
 
@@ -277,7 +280,7 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
    *
    * @param reference Document reference
    */
-  deleteByReference(reference: DocumentReference): Promise<void> {
+  async deleteByReference(reference: DocumentReference): Promise<void> {
     if (getFileProperties(this.getNewModel()).length) {
       return this.getByReference(reference)
         .then(model => this.delete(model));
@@ -301,7 +304,7 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
         }
       );
     }
-    console.error(
+    MFLogger.error(
       '[firestoreDao] - getNewModelFromDb return null because dbObj.exists is null or false. dbObj :',
       snapshot
     );
@@ -349,7 +352,7 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
    * @param fileObject
    * @param location
    */
-  saveFile(fileObject: IMFFile, location: string | IMFLocation): Promise<IMFFile> {
+  async saveFile(fileObject: IMFFile, location: string | IMFLocation): Promise<IMFFile> {
     throw new Error('Method saveFile not yet implemented in @modelata/node-fire.');
   }
 
@@ -364,12 +367,12 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
     const fileProperties = getFileProperties(model);
 
     return fileProperties.length ?
-      Promise.all(fileProperties.filter(key => (model as any)[key]).map((key) => {
+      Promise.all(fileProperties.filter((key: string) => (model as any)[key]).map((key: string) => {
         const property = (model as any)[key] as IMFFile;
         if (
           property
           && (
-            typeof (options as any)[key] === 'boolean' ?
+            (options && typeof (options as any)[key] === 'boolean') ?
               (options as any)[key] :
               property.storagePath && (Reflect.getMetadata('storageProperty', model, key) as IMFStorageOptions).deleteOnDelete
           )
@@ -433,7 +436,7 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
       if (options) {
         unusedOptions.map((key) => {
           if (options[key]) {
-            console.warn(`The '${key}' option is unused in node-fire, it will be ignored...`);
+            MFLogger.debugLibrary(`The '${key}' option is unused in node-fire, it will be ignored...`);
           }
         });
       }
@@ -446,7 +449,7 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
    * @param offsetOption The offset option value used here
    * @param options get one options to apply
    */
-  private getOffsetSnapshot(offsetOption: IMFOffset<M>, options?: IMFGetOneOptions): Promise<DocumentSnapshot> {
+  private async getOffsetSnapshot(offsetOption: IMFOffset<M>, options?: IMFGetOneOptions): Promise<DocumentSnapshot> {
     const offset = offsetOption.startAt || offsetOption.startAfter || offsetOption.endAt || offsetOption.endBefore;
     return typeof offset === 'string' ? this.getSnapshot(offset, options) : Promise.resolve(offset);
   }
