@@ -180,7 +180,7 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
    * @param idOrLocation
    * @param options
    */
-  async create(data: M, idOrLocation?: string | Partial<IMFLocation>, options?: IMFSaveOptions): Promise<M> {
+  async create(data: M, idOrLocation?: string | Partial<IMFLocation>, options: IMFSaveOptions = {}): Promise<M> {
     if (!allDataExistInModel(data, this.getNewModel())) {
       return Promise.reject('try to update/add an attribute that is not defined in the model');
     }
