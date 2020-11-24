@@ -18,12 +18,12 @@ import {
   getSplittedPath,
   getFileProperties,
   MFLogger,
-  convertDataFromDb
 } from '@modelata/fire/lib/node';
 import { DocumentReference, DocumentSnapshot, FieldValue, CollectionReference } from '@google-cloud/firestore';
 import { Bucket } from '@google-cloud/storage';
 import 'reflect-metadata';
 import { MFModel } from './mf-model';
+import { convertDataFromDb } from 'helpers/firestore.helper';
 
 
 /**
@@ -298,7 +298,7 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
     if (snapshot.exists) {
       return this.getNewModel(
         {
-          ...convertDataFromDb(snapshot.data() as Partial<M>),
+          ...convertDataFromDb(snapshot.data()) as Partial<M>,
           _id: snapshot.id,
           _collectionPath: snapshot.ref.path,
           _snapshot: snapshot,
