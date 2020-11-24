@@ -23,7 +23,7 @@ import { DocumentReference, DocumentSnapshot, FieldValue, CollectionReference } 
 import { Bucket } from '@google-cloud/storage';
 import 'reflect-metadata';
 import { MFModel } from './mf-model';
-import { convertDataFromDb } from 'helpers/firestore.helper';
+import { convertDataFromDb } from './helpers/firestore.helper';
 
 
 /**
