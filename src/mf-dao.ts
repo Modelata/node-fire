@@ -18,14 +18,13 @@ import {
   getSplittedPath,
   getFileProperties,
   MFLogger,
-  convertDataFromDb,
-  MFOmit,
 } from '@modelata/fire/lib/node';
 import { DocumentReference, DocumentSnapshot, FieldValue, CollectionReference } from '@google-cloud/firestore';
 import { Bucket } from '@google-cloud/storage';
 import 'reflect-metadata';
 import { MFModel } from './mf-model';
 import { MFDeleteMode } from '@modelata/fire/lib/angular/enums/mf-delete-mode.enum';
+import { convertDataFromDb } from './helpers';
 
 
 /**
@@ -135,7 +134,7 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
    * @param location
    * @param options
    */
-  async getList(location?: MFOmit<IMFLocation, 'id'>, options: IMFGetListOptions<M> = {}): Promise<M[]> {
+  async getList(location?: Omit<IMFLocation, 'id'>, options: IMFGetListOptions<M> = {}): Promise<M[]> {
     this.warnOnUnusedOptions('MFDao.getList')(options);
 
     const reference = this.getReference(location) as CollectionReference;
