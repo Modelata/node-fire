@@ -305,11 +305,25 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
     }
 
     return deleteFilesPromise.then(() => {
-      if (options.mode === MFDeleteMode.SOFT || (options.mode !== MFDeleteMode.HARD &&
-        this.deletionMode !== MFDeleteMode.HARD)) {
-        return (this.getReference(realLocation) as DocumentReference).update({ deleted: true });
+      let deleteSubCollectionPromises;
+      const softDelete = options.mode === MFDeleteMode.SOFT ||
+        (options.mode !== MFDeleteMode.HARD && this.deletionMode !== MFDeleteMode.HARD);
+
+      if (options.cascadeOnDelete) {
+        deleteSubCollectionPromises = (this.getReference(realLocation) as DocumentReference).listCollections()
+          .then((collections) => {
+            return Promise.all(collections.map((collection) => {
+              return this.deleteSubCollection(collection, softDelete ? MFDeleteMode.SOFT : MFDeleteMode.HARD);
+            }));
+          }).then(() => Promise.resolve());
+      } else {
+        deleteSubCollectionPromises = Promise.resolve();
       }
-      return (this.getReference(realLocation) as DocumentReference).delete();
+
+      return deleteSubCollectionPromises.then(() => {
+        return softDelete ? (this.getReference(realLocation) as DocumentReference).update({ deleted: true }) :
+          (this.getReference(realLocation) as DocumentReference).delete();
+      });
     }).then();
   }
 
@@ -519,5 +533,51 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
    */
   private getFileProperties(model?: Partial<M>): string[] {
     return getFileProperties((model || this.getNewModel()) as Object);
+  }
+
+  /**
+   * Delete collection and all subcollections
+   *
+   * @param collection collection to delete
+   * @param deletetionMode
+   */
+  private deleteSubCollection(collection: CollectionReference, deletetionMode: MFDeleteMode): Promise<void> {
+    return collection.get()
+      .then((query) => {
+        let batch = this.db.batch();
+        let count = 0;
+
+        const recursivePromises: Promise<void>[] = [];
+        const batchPromises: Promise<FirebaseFirestore.WriteResult[]>[] = [];
+        const deleteSubCollectionPromises: Promise<void>[] = [];
+
+        query.docs.forEach((document) => {
+          count += 1;
+          if (count > 490) {
+            batchPromises.push(batch.commit());
+            batch = this.db.batch();
+          }
+          recursivePromises.push(document.ref.listCollections().then((subCollections) => {
+            subCollections.forEach((subCollection) => {
+              deleteSubCollectionPromises.push(this.deleteSubCollection(subCollection, deletetionMode));
+            });
+          }));
+          if (deletetionMode === MFDeleteMode.SOFT) {
+            batch.update(document.ref, { deleted: true });
+          } else {
+            batch.delete(document.ref);
+          }
+        });
+
+        batchPromises.push(batch.commit());
+
+        return Promise.all(recursivePromises.concat(deleteSubCollectionPromises))
+          .then(() => Promise.all(batchPromises))
+          .then(() => Promise.resolve());
+      })
+      .catch((error) => {
+        MFLogger.error(error);
+        return Promise.reject(error);
+      });
   }
 }
