@@ -30,7 +30,7 @@
   },
   "homepage": "https://github.com/Moventes/modelata-node-fire#readme",
   "dependencies": {
-    "@modelata/fire": "3.4.1"
+    "@modelata/fire": "3.4.7"
   },
   "devDependencies": {
     "create-ts-index": "^1.12.0",

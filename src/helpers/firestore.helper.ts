@@ -21,5 +21,3 @@ export function convertDataFromDb(data: firestore.DocumentData): firestore.Docum
   }
   return data;
 }
-
-
