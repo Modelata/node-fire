@@ -18,13 +18,13 @@ import {
   getSplittedPath,
   getFileProperties,
   MFLogger,
+  convertDataFromDb,
 } from '@modelata/fire/lib/node';
 import { DocumentReference, DocumentSnapshot, FieldValue, CollectionReference } from '@google-cloud/firestore';
 import { Bucket } from '@google-cloud/storage';
 import 'reflect-metadata';
 import { MFModel } from './mf-model';
 import { MFDeleteMode } from '@modelata/fire/lib/angular/enums/mf-delete-mode.enum';
-import { convertDataFromDb } from './helpers';
 
 
 /**
@@ -179,8 +179,6 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
 
     if (options.offset && (options.offset.startAt || options.offset.startAfter || options.offset.endAt || options.offset.endBefore)) {
       const getOneOptions: IMFGetOneOptions = {};
-      if (options.hasOwnProperty('cacheable')) { getOneOptions.cacheable = options.cacheable; }
-      if (options.hasOwnProperty('completeOnFirst')) { getOneOptions.completeOnFirst = options.completeOnFirst; }
       if (options.hasOwnProperty('withSnapshot')) { getOneOptions.withSnapshot = options.withSnapshot; }
       const offsetSnapshot = await this.getOffsetSnapshot(options.offset, getOneOptions);
       if (Object.values(options.offset).filter(value => !!value).length > 1) {
@@ -199,7 +197,6 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
     if (options.limit !== null && options.limit !== undefined && options.limit > -1) {
       query = query.limit(options.limit);
     }
-
 
     return query.get()
       .then(querySnapshot => querySnapshot.docs.map(documentSnapshot => this.getModelFromSnapshot(documentSnapshot)));
