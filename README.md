@@ -417,4 +417,4 @@ Every async method is based on promises.
 You can find more informations on https://moventes.github.io/modelata-node-fire/globals.html
 
 ## Test
-See https://gitlab.com/modelata/test-node-fire
+You can test with https://gitlab.com/modelata/test-node-fire
