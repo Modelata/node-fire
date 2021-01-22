@@ -38,6 +38,13 @@ export abstract class MFModel<M> implements IMFModel<M> {
   @Enumerable(false)
   updateDate: Date = null;
 
+
+  /**
+   * @inheritdoc
+   */
+  @Enumerable(false)
+  deleted = false;
+
   /**
    * @inheritdoc
    *

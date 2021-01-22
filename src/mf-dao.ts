@@ -17,12 +17,14 @@ import {
   getSavableData,
   getSplittedPath,
   getFileProperties,
-  MFLogger
+  MFLogger,
+  convertDataFromDb,
 } from '@modelata/fire/lib/node';
 import { DocumentReference, DocumentSnapshot, FieldValue, CollectionReference } from '@google-cloud/firestore';
 import { Bucket } from '@google-cloud/storage';
 import 'reflect-metadata';
 import { MFModel } from './mf-model';
+import { MFDeleteMode } from '@modelata/fire/lib/angular/enums/mf-delete-mode.enum';
 
 
 /**
@@ -33,6 +35,12 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
    * @inheritdoc
    */
   public readonly mustachePath: string = Reflect.getMetadata('mustachePath', this.constructor);
+
+  /**
+   * soft or hard (default: hard)
+   */
+  public readonly deletionMode: MFDeleteMode =
+    Reflect.getMetadata('deletionMode', this.constructor) || MFDeleteMode.HARD;
 
   /**
    * Must be called with super()
@@ -126,47 +134,68 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
    * @param location
    * @param options
    */
-  async getList(location?: Omit<IMFLocation, 'id'>, options?: IMFGetListOptions<M>): Promise<M[]> {
+  async getList(location?: Omit<IMFLocation, 'id'>, options: IMFGetListOptions<M> = {}): Promise<M[]> {
     this.warnOnUnusedOptions('MFDao.getList')(options);
 
     const reference = this.getReference(location) as CollectionReference;
     let query: FirebaseFirestore.Query = reference;
 
-    if (options) {
-      if (options.where && options.where.length > 0) {
-        options.where.forEach((where) => {
-          if (where) {
-            query = query.where(where.field, where.operator, where.value);
-          }
+    if (!options.includeDeleted) {
+      if (!options.where) {
+        options.where = [];
+      }
+
+      if (!options.where.some(w => w.field === 'deleted')) {
+        options.where.push({
+          field: 'deleted',
+          operator: '==',
+          value: false,
         });
+      } else {
+        MFLogger.warn(
+          'The query option "where: {field:deleted}" is already added automatically to all getList() queries',
+        );
       }
+    } else if (
+      options.where &&
+      options.where.some(w => w.field === 'deleted')
+    ) {
+      MFLogger.warn(
+        'The query option "where: {field:deleted}" is already added automatically to all getList() queries. If you want to get deleted documents, use "includeDeleted" option instead.',
+      );
+    }
 
-      if (options.orderBy) {
-        query = query.orderBy(options.orderBy.field, options.orderBy.operator);
-      }
-
-      if (options.offset && (options.offset.startAt || options.offset.startAfter || options.offset.endAt || options.offset.endBefore)) {
-        const getOneOptions: IMFGetOneOptions = {};
-        if (options.hasOwnProperty('cacheable')) { getOneOptions.cacheable = options.cacheable; }
-        if (options.hasOwnProperty('completeOnFirst')) { getOneOptions.completeOnFirst = options.completeOnFirst; }
-        if (options.hasOwnProperty('withSnapshot')) { getOneOptions.withSnapshot = options.withSnapshot; }
-        const offsetSnapshot = await this.getOffsetSnapshot(options.offset, getOneOptions);
-        if (Object.values(options.offset).filter(value => !!value).length > 1) {
-          throw new Error('Two many offset options');
-        } else if (options.offset.startAt) {
-          query = query.startAt(offsetSnapshot);
-        } else if (options.offset.startAfter) {
-          query = query.startAfter(offsetSnapshot);
-        } else if (options.offset.endAt) {
-          query = query.endAt(offsetSnapshot);
-        } else if (options.offset.endBefore) {
-          query = query.endBefore(offsetSnapshot);
+    if (options.where && options.where.length > 0) {
+      options.where.forEach((where) => {
+        if (where) {
+          query = query.where(where.field, where.operator, where.value);
         }
-      }
+      });
+    }
 
-      if (options.limit !== null && options.limit !== undefined && options.limit > -1) {
-        query = query.limit(options.limit);
+    if (options.orderBy) {
+      query = query.orderBy(options.orderBy.field, options.orderBy.operator);
+    }
+
+    if (options.offset && (options.offset.startAt || options.offset.startAfter || options.offset.endAt || options.offset.endBefore)) {
+      const getOneOptions: IMFGetOneOptions = {};
+      if (options.hasOwnProperty('withSnapshot')) { getOneOptions.withSnapshot = options.withSnapshot; }
+      const offsetSnapshot = await this.getOffsetSnapshot(options.offset, getOneOptions);
+      if (Object.values(options.offset).filter(value => !!value).length > 1) {
+        throw new Error('Two many offset options');
+      } else if (options.offset.startAt) {
+        query = query.startAt(offsetSnapshot);
+      } else if (options.offset.startAfter) {
+        query = query.startAfter(offsetSnapshot);
+      } else if (options.offset.endAt) {
+        query = query.endAt(offsetSnapshot);
+      } else if (options.offset.endBefore) {
+        query = query.endBefore(offsetSnapshot);
       }
+    }
+
+    if (options.limit !== null && options.limit !== undefined && options.limit > -1) {
+      query = query.limit(options.limit);
     }
 
     return query.get()
@@ -237,7 +266,7 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
    * @param idOrLocationOrModel
    * @param options
    */
-  async update(data: Partial<M>, idOrLocationOrModel?: string | IMFLocation | M, options?: IMFUpdateOptions<M>): Promise<Partial<M>> {
+  async update(data: Partial<M>, idOrLocationOrModel?: string | IMFLocation | M, options: IMFUpdateOptions<M> = {}): Promise<Partial<M>> {
     this.warnOnUnusedOptions('MFDao.update')(options);
     if (!allDataExistInModel(data, this.getNewModel())) {
       return Promise.reject('try to update/add an attribute that is not defined in the model');
@@ -258,7 +287,7 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
    * @param idLocationOrModel
    * @param options
    */
-  async delete(idLocationOrModel: string | IMFLocation | M, options?: IMFDeleteOptions<M>): Promise<void> {
+  async delete(idLocationOrModel: string | IMFLocation | M, options: IMFDeleteOptions<M> = {}): Promise<void> {
     this.warnOnUnusedOptions('MFDao.delete')(options);
     const realLocation = getLocation(idLocationOrModel, this.mustachePath);
     let deleteFilesPromise: Promise<M>;
@@ -272,7 +301,27 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
       deleteFilesPromise = Promise.resolve(null);
     }
 
-    return deleteFilesPromise.then(() => (this.getReference(realLocation) as DocumentReference).delete()).then();
+    return deleteFilesPromise.then(() => {
+      let deleteSubCollectionPromises;
+      const softDelete = options.mode === MFDeleteMode.SOFT ||
+        (options.mode !== MFDeleteMode.HARD && this.deletionMode !== MFDeleteMode.HARD);
+
+      if (options.cascadeOnDelete) {
+        deleteSubCollectionPromises = (this.getReference(realLocation) as DocumentReference).listCollections()
+          .then((collections) => {
+            return Promise.all(collections.map((collection) => {
+              return this.deleteSubCollection(collection, softDelete ? MFDeleteMode.SOFT : MFDeleteMode.HARD);
+            }));
+          }).then(() => Promise.resolve());
+      } else {
+        deleteSubCollectionPromises = Promise.resolve();
+      }
+
+      return deleteSubCollectionPromises.then(() => {
+        return softDelete ? (this.getReference(realLocation) as DocumentReference).update({ deleted: true }) :
+          (this.getReference(realLocation) as DocumentReference).delete();
+      });
+    }).then();
   }
 
   /**
@@ -297,7 +346,7 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
     if (snapshot.exists) {
       return this.getNewModel(
         {
-          ...snapshot.data() as Partial<M>,
+          ...convertDataFromDb(snapshot.data()) as Partial<M>,
           _id: snapshot.id,
           _collectionPath: snapshot.ref.path,
           _snapshot: snapshot,
@@ -481,5 +530,51 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
    */
   private getFileProperties(model?: Partial<M>): string[] {
     return getFileProperties((model || this.getNewModel()) as Object);
+  }
+
+  /**
+   * Delete collection and all subcollections
+   *
+   * @param collection collection to delete
+   * @param deletetionMode
+   */
+  private deleteSubCollection(collection: CollectionReference, deletetionMode: MFDeleteMode): Promise<void> {
+    return collection.get()
+      .then((query) => {
+        let batch = this.db.batch();
+        let count = 0;
+
+        const recursivePromises: Promise<void>[] = [];
+        const batchPromises: Promise<FirebaseFirestore.WriteResult[]>[] = [];
+        const deleteSubCollectionPromises: Promise<void>[] = [];
+
+        query.docs.forEach((document) => {
+          count += 1;
+          if (count > 490) {
+            batchPromises.push(batch.commit());
+            batch = this.db.batch();
+          }
+          recursivePromises.push(document.ref.listCollections().then((subCollections) => {
+            subCollections.forEach((subCollection) => {
+              deleteSubCollectionPromises.push(this.deleteSubCollection(subCollection, deletetionMode));
+            });
+          }));
+          if (deletetionMode === MFDeleteMode.SOFT) {
+            batch.update(document.ref, { deleted: true });
+          } else {
+            batch.delete(document.ref);
+          }
+        });
+
+        batchPromises.push(batch.commit());
+
+        return Promise.all(recursivePromises.concat(deleteSubCollectionPromises))
+          .then(() => Promise.all(batchPromises))
+          .then(() => Promise.resolve());
+      })
+      .catch((error) => {
+        MFLogger.error(error);
+        return Promise.reject(error);
+      });
   }
 }
