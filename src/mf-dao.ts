@@ -1,3 +1,4 @@
+/* eslint-disable no-prototype-builtins */
 import {
   IMFDao,
   IMFLocation,
@@ -529,6 +530,7 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
    * @param model Some partial or full model
    */
   private getFileProperties(model?: Partial<M>): string[] {
+    // eslint-disable-next-line @typescript-eslint/ban-types
     return getFileProperties((model || this.getNewModel()) as Object);
   }
 

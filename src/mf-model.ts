@@ -12,38 +12,37 @@ export abstract class MFModel<M> implements IMFModel<M> {
    * @inheritdoc
    */
   @Enumerable(false)
-  _snapshot: FirebaseFirestore.DocumentSnapshot = null;
+    _snapshot: FirebaseFirestore.DocumentSnapshot = null;
 
   /**
    * @inheritdoc
    */
   @Enumerable(false)
-  _id: string = null;
+    _id: string = null;
 
   /**
    * @inheritdoc
    */
   @Enumerable(false)
-  _collectionPath: string = null;
+    _collectionPath: string = null;
 
   /**
    * @inheritdoc
    */
   @Enumerable(false)
-  creationDate: Date = null;
+    creationDate: Date = null;
+
+  /**
+   * @inheritdoc
+   */
+  @Enumerable(false) updateDate: Date = null;
+
 
   /**
    * @inheritdoc
    */
   @Enumerable(false)
-  updateDate: Date = null;
-
-
-  /**
-   * @inheritdoc
-   */
-  @Enumerable(false)
-  deleted = false;
+    deleted = false;
 
   /**
    * @inheritdoc
@@ -75,6 +74,7 @@ export abstract class MFModel<M> implements IMFModel<M> {
           !key.startsWith('$') &&
           typeof data[key] !== 'function'
         ) {
+          // eslint-disable-next-line no-prototype-builtins
           if (this.hasOwnProperty(key)) {
             if (data[key] && typeof (data[key] as any).toDate === 'function') {
               (this as any)[key] = (data[key] as any).toDate();

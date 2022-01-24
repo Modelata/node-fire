@@ -7,7 +7,7 @@
   "scripts": {
     "prebuild": "npm run lint && cti create ./src && echo export * from '@modelata/fire/lib/node'; >> ./src/index.ts",
     "build": "tsc",
-    "lint": "",
+    "lint": "npx eslint src/**/*.ts",
     "prepublishOnly": "npm run build",
     "doc": "typedoc src && touch docs/.nojekyll"
   },
@@ -33,15 +33,18 @@
     "@modelata/fire": "3.4.7"
   },
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.10.0",
+    "@typescript-eslint/parser": "^5.10.0",
     "create-ts-index": "^1.12.0",
+    "eslint": "^8.7.0",
     "firebase-admin": "~10.0.2",
     "reflect-metadata": "~0.1.13",
     "typedoc": "^0.22.11",
     "typescript": "^4.5.5"
   },
   "peerDependencies": {
+    "@google-cloud/firestore": "^4.5.0",
     "firebase-admin": "~10.0.2",
-    "reflect-metadata": "~0.1.13",
-    "@google-cloud/firestore": "^4.5.0"
+    "reflect-metadata": "~0.1.13"
   }
 }
