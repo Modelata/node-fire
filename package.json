@@ -5,9 +5,9 @@
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
-    "prebuild": "npm run lint && cti create ./src && echo \"export * from '@modelata/fire/lib/node';\" >> ./src/index.ts",
+    "prebuild": "npm run lint && cti create ./src && echo export * from '@modelata/fire/lib/node'; >> ./src/index.ts",
     "build": "tsc",
-    "lint": "tslint -p tsconfig.json -c tslint.json 'src/**/*.ts'",
+    "lint": "",
     "prepublishOnly": "npm run build",
     "doc": "typedoc src && touch docs/.nojekyll"
   },
@@ -34,15 +34,14 @@
   },
   "devDependencies": {
     "create-ts-index": "^1.12.0",
-    "firebase-admin": "8.7.0",
-    "tslint": "5.20.1",
-    "tslint-config-airbnb": "5.11.2",
-    "typedoc": "^0.15.3",
-    "typescript": "^3.7.2",
-    "reflect-metadata": "0.1.13"
+    "firebase-admin": "~10.0.2",
+    "reflect-metadata": "~0.1.13",
+    "typedoc": "^0.22.11",
+    "typescript": "^4.5.5"
   },
   "peerDependencies": {
-    "firebase-admin": "8.7.0",
-    "reflect-metadata": "0.1.13"
+    "firebase-admin": "~10.0.2",
+    "reflect-metadata": "~0.1.13",
+    "@google-cloud/firestore": "^4.5.0"
   }
 }
