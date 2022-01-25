@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/Moventes/modelata-node-fire.git"
+    "url": "git+ssh://git@github.com/Modelata/node-fire.git"
   },
   "keywords": [
     "modelata",
@@ -26,9 +26,9 @@
   "author": "Moventes",
   "license": "Beerware",
   "bugs": {
-    "url": "https://github.com/Moventes/modelata-node-fire/issues"
+    "url": "https://github.com/Modelata/node-fire/issues"
   },
-  "homepage": "https://github.com/Moventes/modelata-node-fire#readme",
+  "homepage": "https://github.com/Modelata/node-fire#readme",
   "dependencies": {
     "@modelata/fire": "3.4.7"
   },
