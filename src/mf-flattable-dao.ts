@@ -185,6 +185,7 @@ export abstract class MFFlattableDao<M extends MFModel<M>> extends MFDao<M>{
       (myData, key) => {
         if (
           !Reflect.hasMetadata('subDocPath', refModel, key) &&
+          // eslint-disable-next-line no-prototype-builtins
           data.hasOwnProperty(key)
         ) {
           (myData as any)[key] = (data as any)[key];

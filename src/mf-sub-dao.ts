@@ -1,3 +1,5 @@
+/* eslint-disable no-prototype-builtins */
+/* eslint-disable @typescript-eslint/ban-types */
 import { IMFLocation } from '@modelata/fire/lib/node';
 import { MFDao } from './mf-dao';
 import { MFModel } from './mf-model';
