@@ -1,6 +1,6 @@
 {
   "name": "@modelata/node-fire",
-  "version": "3.3.0",
+  "version": "4.0.0",
   "description": "Modelata abstract layer for firebase-admin sdk in node.js",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
