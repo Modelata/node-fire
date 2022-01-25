@@ -2,6 +2,12 @@
 
 This library is a wrapper around firestore to implement kind of an ODM in Node.JS projects. It also can be used in Firestore cloud functions projects.
 
+## Compatibility
+
+| firebase-admin | @modelata/fire | @modelata/node-fire |
+|----------------|----------------|---------------------|
+| 10.0.2         | ^4.0.0         | ^4.0.0              |
+
 ## Installation
 
 ```bash
@@ -75,7 +81,7 @@ You can use decorators on properties to extend your models :
   email: string = null;
   ```
   - @param subDocPath the path of the subdocument (WITHOUT main document path)
-  
+
    this property is from a subdocument
 
  /!\  the DAO must extends MFFlattableDao
@@ -139,8 +145,8 @@ export class SomeDao extends MFFlattableDao<SomeModel> {
 @CollectionPath('/users')
 ```
 
-CollectionPath decorator must be used on all DAO.  
-CollectionPath take in parameter a string representing the collection path in firestore db.  
+CollectionPath decorator must be used on all DAO.
+CollectionPath take in parameter a string representing the collection path in firestore db.
 If the collection is a subcollection (collection in a document), use the "mustache" syntaxe for all document id.
 
 ```ts
@@ -164,11 +170,11 @@ const location = {
 ```
 
 DeletionMode decorator is used for set the deletion strategy for this DAO. (default : HARD)
-DeletionMode take in parameter a enum value MFDeleteMode.SOFT or MFDeleteMode.HARD.  
+DeletionMode take in parameter a enum value MFDeleteMode.SOFT or MFDeleteMode.HARD.
 
 MFDeleteMode.SOFT :
 - when a dao delete a document (with delete methode), the document is just updated with delete = true;
-- all getList calls have a "where filter" on deleted field  
+- all getList calls have a "where filter" on deleted field
 
 MFDeleteMode.HARD :
 - when a dao delete a document (with delete methode), the document is definitely deleted.
