@@ -1,6 +1,6 @@
 {
   "name": "@modelata/node-fire",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "Modelata abstract layer for firebase-admin sdk in node.js",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -30,7 +30,7 @@
   },
   "homepage": "https://github.com/Modelata/node-fire#readme",
   "dependencies": {
-    "@modelata/fire": "4.0.0"
+    "@modelata/fire": "4.0.1"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.10.0",
