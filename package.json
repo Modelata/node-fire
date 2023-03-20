@@ -1,6 +1,6 @@
 {
   "name": "@modelata/node-fire",
-  "version": "4.0.1",
+  "version": "5.0.0",
   "description": "Modelata abstract layer for firebase-admin sdk in node.js",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -30,21 +30,21 @@
   },
   "homepage": "https://github.com/Modelata/node-fire#readme",
   "dependencies": {
-    "@modelata/fire": "4.0.1"
+    "@modelata/fire": "5.0.0"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^5.10.0",
-    "@typescript-eslint/parser": "^5.10.0",
-    "create-ts-index": "^1.12.0",
-    "eslint": "^8.7.0",
-    "firebase-admin": "~10.0.2",
+    "@typescript-eslint/eslint-plugin": "^5.55.0",
+    "@typescript-eslint/parser": "^5.55.0",
+    "create-ts-index": "^1.14.0",
+    "eslint": "^8.36.0",
+    "firebase-admin": "~11.5.0",
     "reflect-metadata": "~0.1.13",
-    "typedoc": "^0.22.11",
-    "typescript": "^4.5.5"
+    "typedoc": "^0.23.28",
+    "typescript": "^5.0.2"
   },
   "peerDependencies": {
-    "@google-cloud/firestore": "^4.5.0",
-    "firebase-admin": "~10.0.2",
+    "@google-cloud/firestore": "^6.5.0",
+    "firebase-admin": "~11.5.0",
     "reflect-metadata": "~0.1.13"
   }
 }

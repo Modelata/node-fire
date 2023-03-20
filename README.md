@@ -6,6 +6,7 @@ This library is a wrapper around firestore to implement kind of an ODM in Node.J
 
 | firebase-admin | @modelata/fire | @modelata/node-fire |
 |----------------|----------------|---------------------|
+| 11.5.2         | ^5.0.0         | ^5.0.0              |
 | 10.0.2         | ^4.0.0         | ^4.0.0              |
 
 ## Installation

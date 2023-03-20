@@ -14,7 +14,7 @@ export class SubMFDao extends MFDao<any> {
   /**
    * @inheritdoc
    */
-  public mustachePath: string;
+  declare public mustachePath: string;
 
   /**
    * Must be called with super
