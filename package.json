@@ -1,11 +1,11 @@
 {
   "name": "@modelata/node-fire",
-  "version": "5.0.0",
+  "version": "5.0.2",
   "description": "Modelata abstract layer for firebase-admin sdk in node.js",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
-    "prebuild": "npm run lint && cti create ./src && echo export * from '@modelata/fire/lib/node'; >> ./src/index.ts",
+    "prebuild": "npm run lint && cti create ./src && echo \"export * from '@modelata/fire/lib/node';\" >> ./src/index.ts",
     "build": "tsc",
     "lint": "npx eslint src/**/*.ts",
     "prepublishOnly": "npm run build",
