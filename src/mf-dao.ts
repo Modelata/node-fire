@@ -354,10 +354,6 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
         }
       );
     }
-    MFLogger.error(
-      '[firestoreDao] - getNewModelFromDb return null because dbObj.exists is null or false. dbObj :',
-      snapshot
-    );
     return null;
   }
 
