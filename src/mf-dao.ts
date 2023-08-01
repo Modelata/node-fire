@@ -389,7 +389,7 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
     newModel: Partial<M>,
     newLocation: IMFLocation
   }> {
-    throw new Error('Method saveFiles not yet implemented in @modelata/node-fire.');
+    throw new Error('Method saveFiles not yet implemented in @syd-legacy/node-fire.');
   }
 
   /**
@@ -399,7 +399,7 @@ export abstract class MFDao<M extends MFModel<M>> implements IMFDao<M> {
    * @param location
    */
   async saveFile(fileObject: IMFFile, location: string | IMFLocation): Promise<IMFFile> {
-    throw new Error('Method saveFile not yet implemented in @modelata/node-fire.');
+    throw new Error('Method saveFile not yet implemented in @syd-legacy/node-fire.');
   }
 
   /**

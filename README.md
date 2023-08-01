@@ -1,10 +1,10 @@
-# @modelata/node-fire
+# @syd-legacy/node-fire
 
 This library is a wrapper around firestore to implement kind of an ODM in Node.JS projects. It also can be used in Firestore cloud functions projects.
 
 ## Compatibility
 
-| firebase-admin | @modelata/fire | @modelata/node-fire |
+| firebase-admin | @modelata/fire | @syd-legacy/node-fire |
 |----------------|----------------|---------------------|
 | 11.5.2         | ^5.0.0         | ^5.0.0              |
 | 10.0.2         | ^4.0.0         | ^4.0.0              |
@@ -12,7 +12,7 @@ This library is a wrapper around firestore to implement kind of an ODM in Node.J
 ## Installation
 
 ```bash
-npm i -s @modelata/node-fire firebase-admin reflect-metadata
+npm i -s @syd-legacy/node-fire firebase-admin reflect-metadata
 ```
 
 ## Initialization
